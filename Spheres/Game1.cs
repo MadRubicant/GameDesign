@@ -6,7 +6,12 @@ using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+//using System.Drawing;
+using System.Runtime.InteropServices;
 
+//using System.Windows.Forms;
+
+using MonoGame.Framework;
 namespace Spheres {
     /// <summary>
     /// This is the main type for your game
@@ -14,14 +19,19 @@ namespace Spheres {
     public class Game1 : Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        SpriteFont font;
         Point Center;
-        Rectangle Screen;
+        Rectangle screen;
         List<Primitive> Circles;
         Random rand = new Random();
+        GraphicalInterface gui;
         public Game1()
             : base() {
             graphics = new GraphicsDeviceManager(this);
+            graphics.PreferredBackBufferHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
+            graphics.PreferredBackBufferWidth = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
             graphics.IsFullScreen = true;
+            this.IsMouseVisible = true;
             Content.RootDirectory = "Content";
         }
 
@@ -31,17 +41,22 @@ namespace Spheres {
         /// related content.  Calling base.Initialize will enumerate through any components
         /// and initialize them as well.
         /// </summary>
+        /// 
         protected override void Initialize() {
             // TODO: Add your initialization logic here
-            //graphics.PreferredBackBufferHeight = graphics.GraphicsDevice.Adapter.CurrentDisplayMode.TitleSafeArea.Height/2;
-            //graphics.PreferredBackBufferWidth = graphics.GraphicsDevice.Adapter.CurrentDisplayMode.TitleSafeArea.Width/2;
+            graphics.IsFullScreen = true;
+            graphics.PreferredBackBufferHeight = graphics.GraphicsDevice.Adapter.CurrentDisplayMode.TitleSafeArea.Height;
+            graphics.PreferredBackBufferWidth = graphics.GraphicsDevice.Adapter.CurrentDisplayMode.TitleSafeArea.Width;
             graphics.ApplyChanges();
-            Screen = graphics.GraphicsDevice.Viewport.TitleSafeArea;
-            Center = new Point(Screen.Width / 2, Screen.Height / 2);
+            screen = graphics.GraphicsDevice.Viewport.TitleSafeArea;
+            Center = new Point(screen.Width / 2, screen.Height / 2);
             Circles = new List<Primitive>();
             base.Initialize();
         }
+ 
+        
 
+        
         /// <summary>
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
@@ -50,17 +65,21 @@ namespace Spheres {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             ShapeTextures.initGraphics(graphics);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 500; i++) {
                 var circ = genCircle();
-                /*foreach (Primitive p in Circles) {
+                bool good = true;
+                foreach (Primitive p in Circles) {
                     if (p.shapeType.Intersects(circ.shapeType))
-                        Circles.Add(circ);
-                    else {
-                        i--;
-                    }
-                }*/
-                Circles.Add(circ);
+                        good = false;   
+                }
+                if (good == true)
+                    Circles.Add(circ);
+                else
+                    i--;
             }
+            font = Content.Load<SpriteFont>("mainFont");
+            gui = new GraphicalInterface(graphics.GraphicsDevice, font);
+
             // TODO: use this.Content to load your game content here
         }
 
@@ -69,6 +88,7 @@ namespace Spheres {
         /// all content.
         /// </summary>
         protected override void UnloadContent() {
+
             // TODO: Unload any non ContentManager content here
         }
 
@@ -96,10 +116,10 @@ namespace Spheres {
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
-
             foreach (Primitive p in Circles) {
                 p.Draw(spriteBatch);
             }
+            gui.drawFPS(gameTime, spriteBatch);
             spriteBatch.End();
             // TODO: Add your drawing code here
             
@@ -135,12 +155,12 @@ namespace Spheres {
                     }
                 }
                 Primitive p = Circles[i];
-                if (!Screen.Contains(p.shapeType.Position)) {
-                    if (p.shapeType.Position.X > Screen.Width && p.shapeType.Velocity.X > 0)
+                if (!screen.Contains(p.shapeType.Position)) {
+                    if (p.shapeType.Position.X > screen.Width && p.shapeType.Velocity.X > 0)
                         p.shapeType.Velocity = new Vector2(-p.shapeType.Velocity.X, p.shapeType.Velocity.Y);
                     if (p.shapeType.Position.X < 0 && p.shapeType.Velocity.X < 0)
                         p.shapeType.Velocity = new Vector2(-p.shapeType.Velocity.X, p.shapeType.Velocity.Y);
-                    if (p.shapeType.Position.Y > Screen.Height && p.shapeType.Velocity.Y > 0)
+                    if (p.shapeType.Position.Y > screen.Height && p.shapeType.Velocity.Y > 0)
                         p.shapeType.Velocity = new Vector2(p.shapeType.Velocity.X, -p.shapeType.Velocity.Y);
                     if (p.shapeType.Position.Y < 0 && p.shapeType.Velocity.Y < 0)
                         p.shapeType.Velocity = new Vector2(p.shapeType.Velocity.X, -p.shapeType.Velocity.Y);
@@ -150,11 +170,11 @@ namespace Spheres {
         }
 
         Primitive genCircle() {
-            float x = (float)rand.NextDouble() * Screen.Width;
-            float y = (float)rand.NextDouble() * Screen.Height;
+            float x = (float)rand.NextDouble() * screen.Width;
+            float y = (float)rand.NextDouble() * screen.Height;
             float dx = (float)rand.NextDouble() * 5;
             float dy = (float)rand.NextDouble() * 5;
-            float radius = rand.Next(100) + 10;
+            float radius = 25;
             Color c = new Color(rand.Next(5, 255), rand.Next(5, 255), rand.Next(5, 255));
             Primitive p = new Primitive(new Circle(radius, new Vector2(x, y), new Vector2(dx, dy)), ShapeTextures.Circle(radius, c));
             

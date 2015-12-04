@@ -62,8 +62,8 @@ namespace Spheres {
 
         public override Vector2 TexturePosition() {
             Vector2 pos = position;
-            pos.X -= radius / 2;
-            pos.Y -= radius / 2;
+            pos.X -= radius;
+            pos.Y -= radius;
             return pos;
         }
 
@@ -79,10 +79,13 @@ namespace Spheres {
             // Add their velocities to their positions
             Vector2 changePos = c.Position - position;
             float radsum = radius + c.radius;
-            //changePos += velocity + c.velocity;
 
-            if (changePos.LengthSquared() <= radsum * radsum)
-                return true;
+            if (changePos.LengthSquared() <= radsum * radsum) {
+                if ((changePos + velocity + c.velocity).LengthSquared() <= radsum * radsum)
+                    return true;
+                else
+                    return false;
+            }
             else
                 return false;
         }
