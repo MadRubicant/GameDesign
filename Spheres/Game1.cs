@@ -65,7 +65,7 @@ namespace Spheres {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             ShapeTextures.initGraphics(graphics);
-            for (int i = 0; i < 500; i++) {
+            for (int i = 0; i < 20; i++) {
                 var circ = genCircle();
                 bool good = true;
                 foreach (Primitive p in Circles) {
@@ -77,8 +77,10 @@ namespace Spheres {
                 else
                     i--;
             }
+            Circles.Sort((x, y) => -x.Mass.CompareTo(y.Mass));
             font = Content.Load<SpriteFont>("mainFont");
             gui = new GraphicalInterface(graphics.GraphicsDevice, font);
+            gui.infoBar = Content.Load<Texture2D>("guiWindow1");
 
             // TODO: use this.Content to load your game content here
         }
@@ -119,7 +121,7 @@ namespace Spheres {
             foreach (Primitive p in Circles) {
                 p.Draw(spriteBatch);
             }
-            gui.drawFPS(gameTime, spriteBatch);
+            gui.Draw(gameTime, spriteBatch);
             spriteBatch.End();
             // TODO: Add your drawing code here
             
@@ -174,7 +176,7 @@ namespace Spheres {
             float y = (float)rand.NextDouble() * screen.Height;
             float dx = (float)rand.NextDouble() * 5;
             float dy = (float)rand.NextDouble() * 5;
-            float radius = 25;
+            float radius = rand.Next(10, 60);
             Color c = new Color(rand.Next(5, 255), rand.Next(5, 255), rand.Next(5, 255));
             Primitive p = new Primitive(new Circle(radius, new Vector2(x, y), new Vector2(dx, dy)), ShapeTextures.Circle(radius, c));
             

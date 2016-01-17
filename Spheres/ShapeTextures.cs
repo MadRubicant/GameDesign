@@ -36,5 +36,14 @@ namespace Spheres {
             texture.SetData<Color>(colorData);
             return texture;
         }
+
+        public static Texture2D Rectangle(int width, int height, Color color) {
+            Texture2D texture = new Texture2D(graphics.GraphicsDevice, width, height);
+            Color[] colorData = new Color[width * height];
+            for (int i = 0; i < width * height; i++)
+                colorData[i] = color;
+            texture.SetData<Color>(colorData);
+            return texture;
+        }
     }
 }
