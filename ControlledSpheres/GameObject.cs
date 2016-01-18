@@ -15,6 +15,9 @@ namespace ControlledSpheres {
         public BoundingBox largeBox {get; set;}
         protected BoundingBox[] collisionBox;
 
+        public GameObject() {
+
+        }
         public GameObject(Texture2D texture, Vector3 position) {
             Texture = texture;
             Position = position;
@@ -78,6 +81,25 @@ namespace ControlledSpheres {
 
         public void Draw(SpriteBatch spriteBatch, Vector2 location) {
             spriteBatch.Draw(AnimationSteps[CurrentFrame % FrameLength], location, Color.White);
+        }
+
+        public Texture2D getIdleTexture() {
+            return AnimationSteps[0];
+        }
+    }
+
+    // This class is for objects like torches, which only flicker in one way, or explosions
+    class StaticAnimatedGameObject : GameObject {
+        public Animation MainAnimation;
+
+    }
+
+    // This class is for sprites with multiple possible animations. Like the player in an RPG
+    class DynamicAnimatedGameObject : GameObject {
+        public Animation[] Animations;
+
+        public DynamicAnimatedGameObject(Animation[] animationList, Vector3 position) : base(animationList[0].getIdleTexture(), position){
+            Animations = animationList;
         }
     }
 }
