@@ -8,11 +8,11 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ControlledSpheres {
     class Path {
-        Dictionary<DynamicAnimatedGameObject, Waypoint> PathObjects;
+        Dictionary<AnimatedGameObject, Waypoint> PathObjects;
         Waypoint Head;
         Waypoint Tail;
         public Path() {
-            PathObjects = new Dictionary<DynamicAnimatedGameObject, Waypoint>();
+            PathObjects = new Dictionary<AnimatedGameObject, Waypoint>();
         }
 
 
@@ -25,15 +25,15 @@ namespace ControlledSpheres {
         }
 
 
-        public void addObject(DynamicAnimatedGameObject obj) {
+        public void addObject(AnimatedGameObject obj) {
             PathObjects.Add(obj, Head);
         }
 
-        public void deleteObject(DynamicAnimatedGameObject obj) {
+        public void deleteObject(AnimatedGameObject obj) {
             PathObjects.Remove(obj);
         }
 
-        public bool existsObject(DynamicAnimatedGameObject obj) {
+        public bool existsObject(AnimatedGameObject obj) {
             return PathObjects.ContainsKey(obj);
         }
 
@@ -109,7 +109,7 @@ namespace ControlledSpheres {
 
         // Returns whether the game object has arrived at the waypoint
         // "Arrived" means that the center of the object is completely contained in the Tolerance BoundingSphere
-        public bool objectArrived(DynamicAnimatedGameObject gameObject) {
+        public bool objectArrived(AnimatedGameObject gameObject) {
             var intersect = Tolerance.Contains(gameObject.Position);
             if (intersect == ContainmentType.Contains)
                 return true;

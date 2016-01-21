@@ -90,18 +90,27 @@ namespace ControlledSpheres {
         }
     }
 
-    // This class is for objects like torches, which only flicker in one way, or explosions
-    class StaticAnimatedGameObject : GameObject {
-        public Animation MainAnimation;
-
-    }
-
     // This class is for sprites with multiple possible animations. Like the player in an RPG
-    class DynamicAnimatedGameObject : GameObject {
+    class AnimatedGameObject : GameObject {
         public Animation[] Animations;
+        int currentAnimation = 0;
 
-        public DynamicAnimatedGameObject(Animation[] animationList, Vector3 position) : base(animationList[0].getIdleTexture(), position){
+        public AnimatedGameObject(Animation[] animationList, Vector3 position)
+            : base(animationList[0].getIdleTexture(), position) {
             Animations = animationList;
+        }
+
+        // This is more of a debugging version to let me spawn an object without making up an animation for it
+        public AnimatedGameObject(Texture2D texture, Vector3 position)
+            : base(texture, position) {
+                Texture2D[] singleTexture = new Texture2D[1];
+                singleTexture[0] = texture;
+                Animations = new Animation[1];
+                Animations[0] = new Animation(singleTexture, 1, 1);
+        }
+
+        public override void Draw(SpriteBatch spriteBatch) {
+            Animations[currentAnimation].Draw(spriteBatch, this.Position.ToVector2());
         }
     }
 }

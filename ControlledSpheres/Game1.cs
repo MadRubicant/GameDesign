@@ -12,15 +12,18 @@ namespace ControlledSpheres {
     public class Game1 : Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-
-        //GameLevel testLevel;
-
+           //GameLevel testLevel;
+        AnimatedGameObject Sphere;
+        Interface GameInterface;
         System.Windows.Forms.Form windowForm;
         public Game1()
             : base() {
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
             graphics.PreferredBackBufferWidth = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
+
+            this.IsMouseVisible = true;
+            GameInterface = new Interface();
             //graphics.IsFullScreen = true;
             //this.Window.IsBorderless = true;
             
@@ -66,12 +69,10 @@ namespace ControlledSpheres {
             graphics.PreferredBackBufferHeight = background.Height / 4 * 3;
             graphics.PreferredBackBufferWidth = background.Width / 4 * 3;
             graphics.ApplyChanges();
-            //windowForm.WindowState = System.Windows.Forms.FormWindowState.Normal;
-            //windowForm.Width = background.Width;
-            //windowForm.Height = background.Height;
-            //windowForm.Location = new System.Drawing.Point(0, 0);
-            //graphics.IsFullScreen = true;
-            // TODO: use this.Content to load your game content here
+
+            Texture2D circle = Content.Load<Texture2D>("circle");
+            Sphere = new AnimatedGameObject(circle, new Vector3(50, 50, 0));
+            
         }
 
         /// <summary>
@@ -90,7 +91,11 @@ namespace ControlledSpheres {
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
+            GamePadState controllerstate = GamePad.GetState(PlayerIndex.One);
+            
+            KeyboardState keyState = Keyboard.GetState();
+            MouseState mouseState = Mouse.GetState();
+            GameInterface.HandleInput(keyState, mouseState);
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -104,7 +109,7 @@ namespace ControlledSpheres {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
             // TODO: Add your drawing code here
-
+            Sphere.Draw(spriteBatch);
             //testLevel.Draw(spriteBatch);
 
             spriteBatch.End();
