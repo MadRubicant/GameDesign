@@ -13,7 +13,7 @@ namespace ControlledSpheres {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        GameLevel testLevel;
+        //GameLevel testLevel;
 
         System.Windows.Forms.Form windowForm;
         public Game1()
@@ -61,7 +61,7 @@ namespace ControlledSpheres {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Texture2D background = Content.Load<Texture2D>("light_sand_template");
-            testLevel = new GameLevel(background);
+            //testLevel = new GameLevel(background);
             this.Window.Position = new Point((graphics.PreferredBackBufferHeight - background.Height) / 2, (this.graphics.PreferredBackBufferWidth - background.Width) / 2);
             graphics.PreferredBackBufferHeight = background.Height / 4 * 3;
             graphics.PreferredBackBufferWidth = background.Width / 4 * 3;
@@ -105,7 +105,7 @@ namespace ControlledSpheres {
             spriteBatch.Begin();
             // TODO: Add your drawing code here
 
-            testLevel.Draw(spriteBatch);
+            //testLevel.Draw(spriteBatch);
 
             spriteBatch.End();
             base.Draw(gameTime);
