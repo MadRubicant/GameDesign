@@ -81,7 +81,7 @@ namespace ControlledSpheres {
 
             Texture2D circle = Content.Load<Texture2D>("circle");
             Sphere = new AnimatedGameObject(circle, new Vector3(50, 50, 0));
-            Sphere.Velocity = new Vector3(0, 3, 0);
+            //Sphere.Velocity = new Vector3(0, 3, 0);
             DebugPath.addObject(Sphere);
         }
 
@@ -102,9 +102,8 @@ namespace ControlledSpheres {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             PlayerInputHandler.HandleInput();
-            DebugPath.Update(gameTime);
             // TODO: Add your update logic here
-
+            Sphere.Update(gameTime);
             base.Update(gameTime);
         }
 
@@ -129,18 +128,19 @@ namespace ControlledSpheres {
 
         public void HandleButtonPress(object sender, InputStateEventArgs e) {
             if (e.Button == AllButtons.MouseButtonLeft)
-                Sphere.Position = e.MousePos.ToVector2().ToVector3();
+                Sphere.Center = e.MousePos.ToVector2().ToVector3();
             Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
         }
 
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
             if (e.Button == AllButtons.MouseButtonLeft)
-                Sphere.Position = e.MousePos.ToVector3();
+                Sphere.Center = e.MousePos.ToVector3();
+
         }
 
         public void HandleMouseMovement(object sender, InputStateEventArgs e) {
             Console.WriteLine(e.MouseDelta.ToString());
-            Sphere.Position = e.MousePos.ToVector3();
+            Sphere.Center = e.MousePos.ToVector3();
         }
     }
 }

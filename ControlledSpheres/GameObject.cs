@@ -13,27 +13,53 @@ namespace ControlledSpheres {
     
     class GameObject {
         public Texture2D Texture {get; set;}
-        public Vector3 Position {get; set;}
+        public Vector2 TexturePosition { get; private set; }
+        private Vector3 _center;
+        public Vector3 Center {
+            get {
+            return _center;
+        }
+            set {
+                Vector3 diff = _center - TexturePosition.ToVector3();
+                _center = value;
+                TexturePosition = (_center - diff).ToVector2();
+            }
+        }
+        public Vector3 Velocity { get; set; }
         public BoundingBox largeBox {get; set;}
         protected BoundingBox[] collisionBox;
 
         public GameObject() {
 
         }
+
+        // Position is the center of the object
         public GameObject(Texture2D texture, Vector3 position) {
             Texture = texture;
-            Position = position;
+            _center = position;
+            TexturePosition = new Vector2(Center.X - Texture.Width / 2, Center.Y - Texture.Height / 2);
             // The large bounding box is 1 unit deep, .5 above and .5 below
-            largeBox = new BoundingBox(Position - new Vector3(0, 0, 1), Position + new Vector3(Texture.Width, Texture.Height, 1));
+            largeBox = new BoundingBox(Center - new Vector3(-TexturePosition, 1), Center + new Vector3(TexturePosition, 1));
         }
-        public virtual void Update(GameTime gameTime) {
 
+        public GameObject(Texture2D texture, Vector3 position, Vector3 velocity) {
+            Texture = texture;
+            _center = position;
+            Velocity = velocity;
+            TexturePosition = new Vector2(Center.X - Texture.Width / 2, Center.Y - Texture.Height / 2);
+            // The large bounding box is 1 unit deep, .5 above and .5 below
+            largeBox = new BoundingBox(Center - new Vector3(-TexturePosition, 1), Center + new Vector3(TexturePosition, 1));
+        }
+
+        public virtual void Update(GameTime gameTime) {
+            Center += Velocity;
+            largeBox = new BoundingBox(largeBox.Min + Velocity, largeBox.Max + Velocity);
         }
 
         public virtual void Draw(SpriteBatch spriteBatch) {
-            spriteBatch.Draw(Texture, Position.ToVector2(), Color.White);
+            spriteBatch.Draw(Texture, TexturePosition, Color.White);
         }
-    }
+    }  
 
 
     class Animation {
@@ -100,6 +126,10 @@ namespace ControlledSpheres {
             Animations = animationList;
         }
 
+        public AnimatedGameObject(Animation[] animationList, Vector3 position, Vector3 velocity)
+            : base(animationList[0].getIdleTexture(), position, velocity) {
+                Animations = animationList;
+        }
         // This is more of a debugging version to let me spawn an object without making up an animation for it
         public AnimatedGameObject(Texture2D texture, Vector3 position)
             : base(texture, position) {
@@ -110,7 +140,12 @@ namespace ControlledSpheres {
         }
 
         public override void Draw(SpriteBatch spriteBatch) {
-            Animations[currentAnimation].Draw(spriteBatch, this.Position.ToVector2());
+            Animations[currentAnimation].Draw(spriteBatch, this.TexturePosition);
+        }
+
+        public override void Update(GameTime gameTime) {
+            base.Update(gameTime);
+            Animations[currentAnimation].Update(gameTime);
         }
     }
 }
