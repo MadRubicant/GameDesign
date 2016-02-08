@@ -19,6 +19,8 @@ namespace ExtensionMethods {
             return ret;
         }
 
-
+        public static Vector3 ToVector3(this Point point) {
+            return new Vector3(point.X, point.Y, 0);
+        }
     }
 }

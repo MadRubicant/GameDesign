@@ -9,14 +9,13 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ControlledSpheres {
 
-    delegate void InputEvent(object sender, InputStateEventArgs e);
+    public delegate void InputEvent(object sender, InputStateEventArgs e);
 
     enum ActionTypes { Action, State, Range };
-    enum MouseButtons { LeftButton, RightButton, MiddleButton };
 
     public enum AllButtons { None,
         Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, // Letter keys
-        Dash, Equal, OpenBracket, CloseBracket, Backslash, Semicolon, Apostrophe, Comma, Period, Slash, Plus// Non-numeric keys
+        Dash, Equal, OpenBracket, CloseBracket, Backslash, Semicolon, Apostrophe, Comma, Period, Slash, Plus,// Non-numeric keys
         Num1, Num2, Num3, Num4, Num5, Num6, Num7, Num8, Num9, Num0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, // Number and numpad keys
         Numpad6, Numpad7, Numpad8, Numpad9, Numpad0, NumpadSlash, NumpadAsterisk, NumpadDash, NumpadPlus, NumpadPeriod,
         Escape, Tab, Enter, Backspace, Delete, LeftSingleQuote, Spacebar, // Misc keys
@@ -27,10 +26,19 @@ namespace ControlledSpheres {
 
     public enum ModifierKeys { None, LeftShift, LeftControl, LeftAlt, RightShift, RightControl, RightAlt }
 
-    class InputStateEventArgs : EventArgs {
+    public class InputStateEventArgs : EventArgs {
         public AllButtons Button { get; set; }
-        public ModifierKeys Modifier { get; set; }
+        public ModifierKeys[] Modifier { get; set; }
         public Point MousePos {get; set;}
+        public Point MouseDelta { get; set; }
+
+        public InputStateEventArgs Copy() {
+            var ret = new InputStateEventArgs();
+            ret.Button = this.Button;
+            ret.Modifier = this.Modifier;
+            ret.MousePos = this.MousePos;
+            return ret;
+        }
     }
 
 
@@ -55,6 +63,13 @@ namespace ControlledSpheres {
         GamePadState GamepadCurrent, GamepadPrevious;
         Keys[] PreviousKeyState, CurrentKeyState;
 
+        public InputHandler() {
+            KeyboardPrevious = KeyboardCurrent = new KeyboardState();
+            MouseCurrent = MousePrevious = new MouseState();
+            GamepadCurrent = GamepadPrevious = new GamePadState();
+            PreviousKeyState = CurrentKeyState = new Keys[0];
+        }
+
         public void HandleInput() {
             // Get the status of input devices for the current frame, and store the values from last frame
             KeyboardPrevious = KeyboardCurrent;
@@ -66,14 +81,24 @@ namespace ControlledSpheres {
 
             PreviousKeyState = CurrentKeyState;
             CurrentKeyState = KeyboardCurrent.GetPressedKeys();
-
             // All keys K are currently pressed in this frame
-            foreach (Keys K in CurrentKeyState) {
-                InputStateEventArgs args = new InputStateEventArgs();
-                args.Button = mapKeytoButton(K);
-                args.Modifier = mapKeytoModifier(K);
-                args.MousePos = MouseCurrent.Position;
+            // TODO make this actually send modifiers and keys at the same time
+            InputStateEventArgs args = new InputStateEventArgs();
 
+            List<ModifierKeys> ModKeys = new List<ModifierKeys>();
+            foreach (Keys K in CurrentKeyState) {
+                ModifierKeys MK = mapKeytoModifier(K);
+                if (MK != ModifierKeys.None) {
+                    ModKeys.Add(MK);
+                }
+            }
+            args.Modifier = ModKeys.ToArray();
+            args.MousePos = MouseCurrent.Position;
+
+            #region Keyboard inputs
+            foreach (Keys K in CurrentKeyState) {
+                args.Button = mapKeytoButton(K);
+                
                 if (KeyboardPrevious.IsKeyUp(K)) {
                     if (ButtonPressed != null) {
                         ButtonPressed(this, args);
@@ -85,20 +110,71 @@ namespace ControlledSpheres {
                     }
                 }
             }
+
             // This gets all the ButtonReleased events
             foreach (Keys K in PreviousKeyState) {
-                InputStateEventArgs args = new InputStateEventArgs();
-                args.Button = mapKeytoButton(K);
-                args.Modifier = mapKeytoModifier(K);
-                args.MousePos = MouseCurrent.Position;
-
                 if (KeyboardCurrent.IsKeyUp(K)) {
+                    args.Button = mapKeytoButton(K);
                     if (ButtonReleased != null) {
                         ButtonReleased(this, args);
                     }
                 }
             }
+            #endregion
 
+            #region Mouse inputs
+            args.Button = AllButtons.MouseButtonLeft;
+            if (MouseCurrent.LeftButton == ButtonState.Pressed && MousePrevious.LeftButton == ButtonState.Released) {
+                if (ButtonPressed != null)
+                    ButtonPressed(this, args);
+            }
+            else if (MouseCurrent.LeftButton == ButtonState.Released) {
+                if (ButtonHeld != null) 
+                    ButtonHeld(this, args);
+            }
+            else if (MouseCurrent.LeftButton == ButtonState.Released && MousePrevious.LeftButton == ButtonState.Pressed) {
+                if (ButtonReleased != null) 
+                    ButtonReleased(this, args);
+            }
+
+            args.Button = AllButtons.MouseButtonMiddle;
+            if (MouseCurrent.MiddleButton == ButtonState.Pressed && MousePrevious.MiddleButton == ButtonState.Released) {
+                if (ButtonPressed != null)
+                    ButtonPressed(this, args);
+            }
+            else if (MouseCurrent.MiddleButton == ButtonState.Pressed) {
+                if (ButtonHeld != null) 
+                    ButtonHeld(this, args);
+            }
+            else if (MouseCurrent.MiddleButton == ButtonState.Released && MousePrevious.MiddleButton == ButtonState.Pressed) {
+                if (ButtonReleased != null)
+                    ButtonReleased(this, args);
+            }
+
+            args.Button = AllButtons.MouseButtonRight;
+            if (MouseCurrent.RightButton == ButtonState.Pressed && MousePrevious.RightButton == ButtonState.Released) {
+                if (ButtonPressed != null)
+                    ButtonPressed(this, args);
+            }
+            else if (MouseCurrent.RightButton == ButtonState.Pressed) {
+                if (ButtonHeld != null)
+                    ButtonHeld(this, args);
+            }
+            else if (MouseCurrent.RightButton == ButtonState.Released && MousePrevious.RightButton == ButtonState.Pressed)
+                if (ButtonReleased != null)
+                    ButtonReleased(this, args);
+            // I feel dirty
+            #endregion
+
+            #region Mouse Movement
+            Point mouseDiff = (MouseCurrent.Position - MousePrevious.Position);
+            if (mouseDiff != new Point()) {
+                args.MouseDelta = mouseDiff;
+                if (MouseMovement != null)
+                    MouseMovement(this, args);
+            }
+
+            #endregion
         }
 
         // God this function is ugly

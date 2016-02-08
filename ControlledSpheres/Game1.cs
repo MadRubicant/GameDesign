@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework.Input;
 using System;
 
 using MonoGame.Framework;
+
+using ExtensionMethods;
+
 namespace ControlledSpheres {
     /// <summary>
     /// This is the main type for your game
@@ -14,8 +17,10 @@ namespace ControlledSpheres {
         SpriteBatch spriteBatch;
            //GameLevel testLevel;
         AnimatedGameObject Sphere;
-        Interface GameInterface;
-        System.Windows.Forms.Form windowForm;
+        InputHandler PlayerInputHandler;
+        InputLogic Keybindings;
+        Path DebugPath;
+
         public Game1()
             : base() {
             graphics = new GraphicsDeviceManager(this);
@@ -23,7 +28,6 @@ namespace ControlledSpheres {
             graphics.PreferredBackBufferWidth = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
 
             this.IsMouseVisible = true;
-            GameInterface = new Interface();
             //graphics.IsFullScreen = true;
             //this.Window.IsBorderless = true;
             
@@ -52,8 +56,13 @@ namespace ControlledSpheres {
         /// </summary>
         protected override void Initialize() {
             // TODO: Add your initialization logic here
-
+            PlayerInputHandler = new InputHandler();
+            PlayerInputHandler.ButtonPressed += this.HandleButtonPress;
+            PlayerInputHandler.MouseMovement += this.HandleMouseMovement;
+            Keybindings = new InputLogic();
+            DebugPath = new Path(new Vector3(50, 50, 0));
             base.Initialize();
+            Console.WriteLine("Program initialized");
         }
 
         /// <summary>
@@ -72,7 +81,8 @@ namespace ControlledSpheres {
 
             Texture2D circle = Content.Load<Texture2D>("circle");
             Sphere = new AnimatedGameObject(circle, new Vector3(50, 50, 0));
-            
+            Sphere.Velocity = new Vector3(0, 3, 0);
+            DebugPath.addObject(Sphere);
         }
 
         /// <summary>
@@ -91,11 +101,8 @@ namespace ControlledSpheres {
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            GamePadState controllerstate = GamePad.GetState(PlayerIndex.One);
-            
-            KeyboardState keyState = Keyboard.GetState();
-            MouseState mouseState = Mouse.GetState();
-            GameInterface.HandleInput(keyState, mouseState);
+            PlayerInputHandler.HandleInput();
+            DebugPath.Update(gameTime);
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -114,6 +121,26 @@ namespace ControlledSpheres {
 
             spriteBatch.End();
             base.Draw(gameTime);
+        }
+
+        void PlacePath(Vector2 Position) {
+            DebugPath.addWaypoint(new Waypoint(Position.ToVector3(), 1f));
+        }
+
+        public void HandleButtonPress(object sender, InputStateEventArgs e) {
+            if (e.Button == AllButtons.MouseButtonLeft)
+                Sphere.Position = e.MousePos.ToVector2().ToVector3();
+            Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
+        }
+
+        public void HandleButtonHeld(object sender, InputStateEventArgs e) {
+            if (e.Button == AllButtons.MouseButtonLeft)
+                Sphere.Position = e.MousePos.ToVector3();
+        }
+
+        public void HandleMouseMovement(object sender, InputStateEventArgs e) {
+            Console.WriteLine(e.MouseDelta.ToString());
+            Sphere.Position = e.MousePos.ToVector3();
         }
     }
 }
