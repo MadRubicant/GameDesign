@@ -11,7 +11,7 @@ using ExtensionMethods;
 namespace ControlledSpheres {
 
     
-    class GameObject {
+    public class GameObject {
         public Texture2D Texture {get; set;}
         public Vector2 TexturePosition { get; private set; }
         private Vector3 _center;
@@ -57,28 +57,37 @@ namespace ControlledSpheres {
         }
 
         public virtual void Draw(SpriteBatch spriteBatch) {
-            spriteBatch.Draw(Texture, TexturePosition, Color.White);
+            spriteBatch.Draw(Texture, TexturePosition, Color.Red);
         }
     }  
 
 
-    class Animation {
+    public class Animation {
         // AnimationSteps[0] should be the inactive state, i.e. standing sprite for an rpg
         public Texture2D[] AnimationSteps;
-        public int FrameLength;
-        public int CurrentFrame;
-        public int TotalFrames;
+        public int AnimationTickLength;
+        public int AnimationTotalLength;
+        public int AnimationTimeElapsed;
+        public int TextureIndex;
 
         public bool Active { get; private set; }
-        public bool Looping { get; private set; }
+        public bool Looping { get; set; }
 
         public Animation(Texture2D[] animationStrip, int framelength, int totalLength) {
             AnimationSteps = animationStrip;
-            FrameLength = framelength;
-            TotalFrames = totalLength;
-            CurrentFrame = 0;
+            AnimationTickLength = framelength;
+            AnimationTotalLength = totalLength;
+            AnimationTimeElapsed = 0;
+            TextureIndex = 0;
         }
 
+        public Animation(Texture2D[] animationStrip, int framelength) {
+            AnimationSteps = animationStrip;
+            AnimationTickLength = framelength;
+            AnimationTotalLength = AnimationSteps.Length * AnimationTickLength;
+            AnimationTimeElapsed = 0;
+            TextureIndex = 0;
+        }
         public void Begin() {
             Active = true;
         }
@@ -91,24 +100,31 @@ namespace ControlledSpheres {
         // Completely resets an animation to state 0 and turns it off
         public void Reset() {
             Active = false;
-            CurrentFrame = 0;
+            AnimationTimeElapsed = 0;
         }
 
         public void Update(GameTime gameTime) {
             // If the animation is active, the frame counter should increment
             if (Active == true) {
-                CurrentFrame++;
-                if (CurrentFrame == TotalFrames) {
-                    CurrentFrame = 0;
-                    // Stop if nonlooping animation, continue on otherwise
-                    if (Looping == false)
-                        Active = false;
+                AnimationTimeElapsed += (int)gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (AnimationTimeElapsed >= (TextureIndex + 1) * AnimationTickLength) {
+                    TextureIndex++;
+                    if (TextureIndex == AnimationSteps.Length) {
+                        TextureIndex = 0;
+                        AnimationTimeElapsed = 0;
+                        if (Looping == false)
+                            Active = false;
+                    }
                 }
             }
         }
 
         public void Draw(SpriteBatch spriteBatch, Vector2 location) {
-            spriteBatch.Draw(AnimationSteps[CurrentFrame % FrameLength], location, Color.White);
+            spriteBatch.Draw(AnimationSteps[TextureIndex], location);
+        }
+
+        public void Draw(SpriteBatch spriteBatch, Vector2 location, Color color) {
+            spriteBatch.Draw(AnimationSteps[TextureIndex], location, color);
         }
 
         public Texture2D getIdleTexture() {
@@ -117,7 +133,7 @@ namespace ControlledSpheres {
     }
 
     // This class is for sprites with multiple possible animations. Like the player in an RPG
-    class AnimatedGameObject : GameObject {
+    public class AnimatedGameObject : GameObject {
         public Animation[] Animations;
         int currentAnimation = 0;
 
