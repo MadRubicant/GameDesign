@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace ExtensionMethods {
     public static class ExtensionMethods {
@@ -19,8 +20,10 @@ namespace ExtensionMethods {
             return ret;
         }
 
+        // Returns a Vector3 with components [X, Y, 0] from the current Point
         public static Vector3 ToVector3(this Point point) {
             return new Vector3(point.X, point.Y, 0);
         }
+
     }
 }
