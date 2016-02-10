@@ -3,8 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using System;
-
-using MonoGame.Framework;
+using System.Collections.Generic;
+using System.Linq;
 
 using ExtensionMethods;
 
@@ -12,40 +12,25 @@ namespace ControlledSpheres {
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    public class Game1 : Game {
+    public class Main : Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
            //GameLevel testLevel;
         AnimatedGameObject Sphere;
         InputHandler PlayerInputHandler;
         InputLogic Keybindings;
-        Path DebugPath;
 
-        public Game1()
+        Animation DebugAnimation;
+        List<AnimatedGameObject> SpawnedAnimations;
+        TextureManager Loader;
+        public Main()
             : base() {
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
             graphics.PreferredBackBufferWidth = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
-
+            SpawnedAnimations = new List<AnimatedGameObject>();
             this.IsMouseVisible = true;
-            //graphics.IsFullScreen = true;
-            //this.Window.IsBorderless = true;
-            
-            // These 5 lines give me borderless windowed fullscreen
-            /*
-            IntPtr hWnd = this.Window.Handle;
-            var control = System.Windows.Forms.Control.FromHandle(hWnd);
-            windowForm = control.FindForm();
-            windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            windowForm.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            */
-
-            /*var screen = Screen.AllScreens.First(e => e.Primary);
-            Window.IsBorderless = true;
-            Window.Position = new Point(screen.Bounds.X, screen.Bounds.Y);
-            graphics.PreferredBackBufferWidth = screen.Bounds.Width;
-            graphics.PreferredBackBufferHeight = screen.Bounds.Height;
-            */Content.RootDirectory = "Content";
+            Content.RootDirectory = "Content";
         }
 
         /// <summary>
@@ -60,7 +45,6 @@ namespace ControlledSpheres {
             PlayerInputHandler.ButtonPressed += this.HandleButtonPress;
             PlayerInputHandler.MouseMovement += this.HandleMouseMovement;
             Keybindings = new InputLogic();
-            DebugPath = new Path(new Vector3(50, 50, 0));
             base.Initialize();
             Console.WriteLine("Program initialized");
         }
@@ -78,11 +62,15 @@ namespace ControlledSpheres {
             graphics.PreferredBackBufferHeight = background.Height / 4 * 3;
             graphics.PreferredBackBufferWidth = background.Width / 4 * 3;
             graphics.ApplyChanges();
+            Loader = new TextureManager(Content, GraphicsDevice);
+
 
             Texture2D circle = Content.Load<Texture2D>("circle");
             Sphere = new AnimatedGameObject(circle, new Vector3(50, 50, 0));
-            //Sphere.Velocity = new Vector3(0, 3, 0);
-            DebugPath.addObject(Sphere);
+            Loader.LoadExplosion1();
+            DebugAnimation = new Animation(TextureManager.TextureAtlas[TextureNames.ExplosionOneRed], 20);
+            DebugAnimation.Looping = true;
+            DebugAnimation.Begin();
         }
 
         /// <summary>
@@ -90,7 +78,6 @@ namespace ControlledSpheres {
         /// all content.
         /// </summary>
         protected override void UnloadContent() {
-            // TODO: Unload any non ContentManager content here
         }
 
         /// <summary>
@@ -104,6 +91,11 @@ namespace ControlledSpheres {
             PlayerInputHandler.HandleInput();
             // TODO: Add your update logic here
             Sphere.Update(gameTime);
+            DebugAnimation.Update(gameTime);
+            foreach (AnimatedGameObject a in SpawnedAnimations) {
+                a.Update(gameTime);
+            }
+            SpawnedAnimations = SpawnedAnimations.Where<AnimatedGameObject>(x => x.Animations[0].Active == true).ToList<AnimatedGameObject>();
             base.Update(gameTime);
         }
 
@@ -112,35 +104,64 @@ namespace ControlledSpheres {
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime) {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
             // TODO: Add your drawing code here
-            Sphere.Draw(spriteBatch);
-            //testLevel.Draw(spriteBatch);
-
+            //Sphere.Draw(spriteBatch);
+            //DebugAnimation.Draw(spriteBatch, new Vector2(50, 50));
+            foreach (AnimatedGameObject a in SpawnedAnimations) {
+                a.Draw(spriteBatch);
+            }
+            //spriteBatch.Draw(TextureManager.TextureAtlas[TextureNames.Debug][0], new Vector2(), Color.White);
             spriteBatch.End();
             base.Draw(gameTime);
         }
 
-        void PlacePath(Vector2 Position) {
-            DebugPath.addWaypoint(new Waypoint(Position.ToVector3(), 1f));
-        }
-
         public void HandleButtonPress(object sender, InputStateEventArgs e) {
-            if (e.Button == AllButtons.MouseButtonLeft)
-                Sphere.Center = e.MousePos.ToVector2().ToVector3();
+            if (e.Button == AllButtons.Q)
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Red));
+            if (e.Button == AllButtons.W)
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Orange));
+            if (e.Button == AllButtons.E)
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Green));
+            if (e.Button == AllButtons.R)
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Blue));
+            if (e.Button == AllButtons.T)
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Yellow));
             Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
         }
 
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
             if (e.Button == AllButtons.MouseButtonLeft)
-                Sphere.Center = e.MousePos.ToVector3();
+                ;
+                //Sphere.Center = e.MousePos.ToVector3();
 
         }
 
         public void HandleMouseMovement(object sender, InputStateEventArgs e) {
             Console.WriteLine(e.MouseDelta.ToString());
-            Sphere.Center = e.MousePos.ToVector3();
+            //Sphere.Center = e.MousePos.ToVector3();
+        }
+
+        public AnimatedGameObject NewExplosion(Vector3 Position, Color color) {
+            TextureNames ExplColor;
+            if (color == Color.Blue)
+                ExplColor = TextureNames.ExplosionTwoBlue;
+            else if (color == Color.Yellow)
+                ExplColor = TextureNames.ExplosionOneYellow;
+            else if (color == Color.Green)
+                ExplColor = TextureNames.ExplosionOneGreen;
+            else if (color == Color.Red)
+                ExplColor = TextureNames.ExplosionOneRed;
+            else if (color == Color.Orange)
+                ExplColor = TextureNames.ExplosionOneOrange;
+            else
+                ExplColor = TextureNames.Debug;
+            Animation[] Anim = new Animation[1];
+            Anim[0] = new Animation(TextureManager.TextureAtlas[ExplColor], 30);
+            AnimatedGameObject AGO = new AnimatedGameObject(Anim, Position);
+            AGO.Animations[0].Begin();
+            return AGO;
         }
     }
 }
