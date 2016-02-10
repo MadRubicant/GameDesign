@@ -11,11 +11,14 @@ namespace ControlledSpheres {
         Dictionary<AnimatedGameObject, Waypoint> PathObjects;
         Waypoint Head;
         Waypoint Tail;
-        public Path() {
+        /*public Path() {
             PathObjects = new Dictionary<AnimatedGameObject, Waypoint>();
+        }*/
+
+        public Path(Vector3 Beginning) {
+            PathObjects = new Dictionary<AnimatedGameObject, Waypoint>();
+            Head = Tail = new Waypoint(Beginning, 0f);
         }
-
-
         public void addWaypoint(Waypoint node) {
             if (Head == null)
                 Head = Tail = node;
@@ -26,6 +29,8 @@ namespace ControlledSpheres {
 
 
         public void addObject(AnimatedGameObject obj) {
+            if (obj == null)
+                throw new ArgumentNullException("obj as a null argument is invalid");
             PathObjects.Add(obj, Head);
         }
 
@@ -39,7 +44,7 @@ namespace ControlledSpheres {
 
         public void Update(GameTime gameTime) {
             foreach (var obj in PathObjects) {
-                obj.Key.Position += obj.Value.getVector() * obj.Value.Velocity;
+                obj.Key.Center += obj.Value.getUnitVector() * obj.Value.Velocity;
             }
         }
 
@@ -96,7 +101,7 @@ namespace ControlledSpheres {
 
         // Returns the unit vector that points from the current position to the position of the next waypoint
         // If there is no next waypoint, return a 0 vector
-        public Vector3 getVector() {
+        public Vector3 getUnitVector() {
             if (NextNode != null) {
                 Vector3 ret = (NextNode.Position - Position);
                 ret.Normalize();
@@ -110,7 +115,7 @@ namespace ControlledSpheres {
         // Returns whether the game object has arrived at the waypoint
         // "Arrived" means that the center of the object is completely contained in the Tolerance BoundingSphere
         public bool objectArrived(AnimatedGameObject gameObject) {
-            var intersect = Tolerance.Contains(gameObject.Position);
+            var intersect = Tolerance.Contains(gameObject.Center);
             if (intersect == ContainmentType.Contains)
                 return true;
             else return false;
