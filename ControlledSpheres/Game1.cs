@@ -30,6 +30,7 @@ namespace ControlledSpheres {
             graphics.PreferredBackBufferWidth = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
             SpawnedAnimations = new List<AnimatedGameObject>();
             this.IsMouseVisible = true;
+            this.IsFixedTimeStep = false;
             Content.RootDirectory = "Content";
         }
 
@@ -44,6 +45,7 @@ namespace ControlledSpheres {
             PlayerInputHandler = new InputHandler();
             PlayerInputHandler.ButtonPressed += this.HandleButtonPress;
             PlayerInputHandler.MouseMovement += this.HandleMouseMovement;
+            PlayerInputHandler.ButtonHeld += this.HandleButtonHeld;
             Keybindings = new InputLogic();
             base.Initialize();
             Console.WriteLine("Program initialized");
@@ -71,6 +73,11 @@ namespace ControlledSpheres {
             DebugAnimation = new Animation(TextureManager.TextureAtlas[TextureNames.ExplosionOneRed], 20);
             DebugAnimation.Looping = true;
             DebugAnimation.Begin();
+
+            Loader.WriteStandardizedTextures();
+            
+
+
         }
 
         /// <summary>
@@ -118,48 +125,85 @@ namespace ControlledSpheres {
         }
 
         public void HandleButtonPress(object sender, InputStateEventArgs e) {
-            if (e.Button == AllButtons.Q)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Red));
-            if (e.Button == AllButtons.W)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Orange));
-            if (e.Button == AllButtons.E)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Green));
-            if (e.Button == AllButtons.R)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Blue));
-            if (e.Button == AllButtons.T)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Yellow));
+            TextureNames explColor = TextureNames.Debug;
+            switch (e.Button) {
+                case AllButtons.Q:
+                    explColor = TextureNames.ExplosionThreeRedDown;
+                    break;
+                case AllButtons.W:
+                    explColor = TextureNames.ExplosionThreeRedLeft;
+                    break;
+                case AllButtons.E:
+                    explColor = TextureNames.ExplosionThreeRedRight;
+                    break;
+                case AllButtons.R:
+                    explColor = TextureNames.ExplosionThreeRedUp;
+                    break;
+                case AllButtons.A:
+                    explColor = TextureNames.ExplosionThreeBlueDown;
+                    break;
+                case AllButtons.S:
+                    explColor = TextureNames.ExplosionThreeBlueLeft;
+                    break;
+                case AllButtons.D:
+                    explColor = TextureNames.ExplosionThreeBlueRight;
+                    break;
+                case AllButtons.F:
+                    explColor = TextureNames.ExplosionThreeBlueUp;
+                    break;
+                default:
+                    return;
+            }
+            Animation[] a = new Animation[1];
+            a[0] = new Animation(TextureManager.TextureAtlas[explColor], 30);
+            a[0].Begin();
+            SpawnedAnimations.Add(new AnimatedGameObject(a, e.MousePos.ToVector3()));
             Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
         }
 
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
+            Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
             if (e.Button == AllButtons.MouseButtonLeft)
-                ;
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Aquamarine));
                 //Sphere.Center = e.MousePos.ToVector3();
-
+            
         }
 
+        /// <summary>
+        /// Handles the mouse movement.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="InputStateEventArgs"/> instance containing the event data.</param>
         public void HandleMouseMovement(object sender, InputStateEventArgs e) {
             Console.WriteLine(e.MouseDelta.ToString());
             //Sphere.Center = e.MousePos.ToVector3();
         }
 
+        /// <summary>
+        /// News the explosion.
+        /// </summary>
+        /// <param name="Position">The position.</param>
+        /// <param name="color">The color.</param>
+        /// <returns></returns>
         public AnimatedGameObject NewExplosion(Vector3 Position, Color color) {
             TextureNames ExplColor;
             if (color == Color.Blue)
-                ExplColor = TextureNames.ExplosionTwoBlue;
+                ExplColor = TextureNames.ExplosionThreeGreenLeft;
             else if (color == Color.Yellow)
-                ExplColor = TextureNames.ExplosionOneYellow;
+                ExplColor = TextureNames.ExplosionThreeGreenRight;
             else if (color == Color.Green)
-                ExplColor = TextureNames.ExplosionOneGreen;
+                ExplColor = TextureNames.ExplosionThreeGreenUp;
             else if (color == Color.Red)
-                ExplColor = TextureNames.ExplosionOneRed;
+                ExplColor = TextureNames.ExplosionThreeGreenDown;
             else if (color == Color.Orange)
-                ExplColor = TextureNames.ExplosionOneOrange;
+                ExplColor = TextureNames.ExplosionThreeOrangeLeft;
+            else if (color == Color.Aquamarine)
+                ExplColor = TextureNames.ExplosionTwoBlue;
             else
                 ExplColor = TextureNames.Debug;
             Animation[] Anim = new Animation[1];
-            Anim[0] = new Animation(TextureManager.TextureAtlas[ExplColor], 30);
-            AnimatedGameObject AGO = new AnimatedGameObject(Anim, Position);
+            Anim[0] = new Animation(TextureManager.TextureAtlas[ExplColor], 40);
+            AnimatedGameObject AGO = new AnimatedGameObject(Anim, Position, new Vector3(2, 2, 0));
             AGO.Animations[0].Begin();
             return AGO;
         }

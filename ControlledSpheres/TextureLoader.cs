@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Utilities;
 
 namespace ControlledSpheres {
     public enum TextureNames {
         Debug,
         ExplosionOneYellow, ExplosionOneOrange, ExplosionOneGreen, ExplosionOneRed, ExplosionOneBlue,
         ExplosionTwoYellow, ExplosionTwoGreen, ExplosionTwoRed, ExplosionTwoBlue,
-        ExplosionThreeYellowLeft, ExplosionThreeYellowRight, ExplosionThreeYellowUp, ExplosionThreeYellowDown
-        
+        ExplosionThreeOrangeLeft, ExplosionThreeOrangeRight, ExplosionThreeOrangeUp, ExplosionThreeOrangeDown,
+        ExplosionThreeGreenLeft, ExplosionThreeGreenRight, ExplosionThreeGreenUp, ExplosionThreeGreenDown,
+        ExplosionThreeRedLeft, ExplosionThreeRedRight, ExplosionThreeRedUp, ExplosionThreeRedDown,
+        ExplosionThreeBlueLeft, ExplosionThreeBlueRight, ExplosionThreeBlueUp, ExplosionThreeBlueDown,
     }
 
     class TextureManager {
@@ -83,19 +87,92 @@ namespace ControlledSpheres {
                 for (int j = 0; j < 6; j++) {
                     Texture2D Frame = new Texture2D(Graphics, 30, 30);
                     ColorData = new Color[30 * 30];
-                    Rectangle FramePosition = new Rectangle(22 + 31 * j, 400 + 36 * i, 30, 30);
+                    Rectangle FramePosition = new Rectangle(22 + 31 * j, 400 + 37 * i, 30, 30);
                     tex.GetData<Color>(0, FramePosition, ColorData, 0, 30 * 30);
                     Frame.SetData<Color>(ColorData);
                     Explosions[i][j] = Frame;
                 }
             }
 
-            TextureAtlas.Add(TextureNames)
+            TextureAtlas.Add(TextureNames.ExplosionThreeOrangeLeft, Explosions[0]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeOrangeRight, Explosions[1]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeOrangeUp, Explosions[2]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeOrangeDown, Explosions[3]);
+
+            Explosions = new Texture2D[4][];
+            for (int i = 0; i < 4; i++) {
+                Explosions[i] = new Texture2D[6];
+                for (int j = 0; j < 6; j++) {
+                    Texture2D Frame = new Texture2D(Graphics, 30, 30);
+                    ColorData = new Color[30 * 30];
+                    Rectangle FramePosition = new Rectangle(225 + 31 * j, 400 + 37 * i, 30, 30);
+                    tex.GetData<Color>(0, FramePosition, ColorData, 0, 30 * 30);
+                    Frame.SetData<Color>(ColorData);
+                    Explosions[i][j] = Frame;
+                }
+            }
+
+            TextureAtlas.Add(TextureNames.ExplosionThreeGreenLeft, Explosions[0]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeGreenRight, Explosions[1]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeGreenUp, Explosions[2]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeGreenDown, Explosions[3]);
+
+            Explosions = new Texture2D[4][];
+            for (int i = 0; i < 4; i++) {
+                Explosions[i] = new Texture2D[6];
+                for (int j = 0; j < 6; j++) {
+                    Texture2D Frame = new Texture2D(Graphics, 30, 30);
+                    ColorData = new Color[30 * 30];
+                    Rectangle FramePosition = new Rectangle(22 + 31 * j, 559 + 37 * i, 30, 30);
+                    tex.GetData<Color>(0, FramePosition, ColorData, 0, 30 * 30);
+                    Frame.SetData<Color>(ColorData);
+                    Explosions[i][j] = Frame;
+                }
+            }
+
+            TextureAtlas.Add(TextureNames.ExplosionThreeRedLeft, Explosions[0]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeRedRight, Explosions[1]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeRedUp, Explosions[2]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeRedDown, Explosions[3]);
+
+            Explosions = new Texture2D[4][];
+            for (int i = 0; i < 4; i++) {
+                Explosions[i] = new Texture2D[6];
+                for (int j = 0; j < 6; j++) {
+                    Texture2D Frame = new Texture2D(Graphics, 30, 30);
+                    ColorData = new Color[30 * 30];
+                    Rectangle FramePosition = new Rectangle(225 + 31 * j, 559 + 37 * i, 30, 30);
+                    tex.GetData<Color>(0, FramePosition, ColorData, 0, 30 * 30);
+                    Frame.SetData<Color>(ColorData);
+                    Explosions[i][j] = Frame;
+                }
+            }
+
+            TextureAtlas.Add(TextureNames.ExplosionThreeBlueLeft, Explosions[0]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeBlueRight, Explosions[1]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeBlueUp, Explosions[2]);
+            TextureAtlas.Add(TextureNames.ExplosionThreeBlueDown, Explosions[3]);
             Texture2D[] te = new Texture2D[1];
+            
             te[0] = tex;
             TextureAtlas.Add(TextureNames.Debug, te);
             Point Base = new Point(22, 28);
 
+        }
+
+        public void WriteStandardizedTextures() {
+            FileStream WriteStream;
+            
+            string path = "Content" + System.IO.Path.DirectorySeparatorChar + "Art" + System.IO.Path.DirectorySeparatorChar;
+            foreach (var NameTexturePair in TextureAtlas) {
+                Texture2D[] TextureArray = NameTexturePair.Value;
+                string textureName = Enum.GetName(typeof(TextureNames), NameTexturePair.Key);
+                for (int i = 0; i < TextureArray.Length; i++) {
+                    string filename = path + textureName + i.ToString() + ".png";
+                    WriteStream = File.OpenWrite(filename);
+                    TextureArray[i].SaveAsPng(WriteStream, TextureArray[i].Width, TextureArray[i].Height);
+                }
+            }
         }
         
     }
