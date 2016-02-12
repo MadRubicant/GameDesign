@@ -25,5 +25,10 @@ namespace ExtensionMethods {
             return new Vector3(point.X, point.Y, 0);
         }
 
+        public static float Angle(this Vector3 vector) {
+            throw new NotImplementedException();
+            return 0f;
+        }
+
     }
 }
