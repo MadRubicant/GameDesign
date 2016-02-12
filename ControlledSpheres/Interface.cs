@@ -13,6 +13,9 @@ namespace ControlledSpheres {
 
     enum ActionTypes { Action, State, Range };
 
+    /// <summary>
+    /// Enumeration of buttons that can be used for input. Includes keyboard keys, mouse buttons, and will be extended to include gamepad buttons
+    /// </summary>
     public enum AllButtons { None,
         Q, W, E, R, T, Y, U, I, O, P, A, S, D, F, G, H, J, K, L, Z, X, C, V, B, N, M, // Letter keys
         Dash, Equal, OpenBracket, CloseBracket, Backslash, Semicolon, Apostrophe, Comma, Period, Slash, Plus,// Non-numeric keys
@@ -98,7 +101,6 @@ namespace ControlledSpheres {
             #region Keyboard inputs
             foreach (Keys K in CurrentKeyState) {
                 args.Button = mapKeytoButton(K);
-                
                 if (KeyboardPrevious.IsKeyUp(K)) {
                     if (ButtonPressed != null) {
                         ButtonPressed(this, args);
@@ -128,7 +130,7 @@ namespace ControlledSpheres {
                 if (ButtonPressed != null)
                     ButtonPressed(this, args);
             }
-            else if (MouseCurrent.LeftButton == ButtonState.Released) {
+            else if (MouseCurrent.LeftButton == ButtonState.Pressed) {
                 if (ButtonHeld != null) 
                     ButtonHeld(this, args);
             }
