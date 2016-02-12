@@ -10,7 +10,6 @@ using ExtensionMethods;
 
 namespace ControlledSpheres {
 
-    
     public class GameObject {
         public Texture2D Texture {get; set;}
         public Vector2 TexturePosition { get; private set; }
@@ -25,15 +24,24 @@ namespace ControlledSpheres {
                 TexturePosition = (_center - diff).ToVector2();
             }
         }
+
+        /// <summary>
+        /// Velocity must be in Units per second
+        /// </summary>
         public Vector3 Velocity { get; set; }
         public BoundingBox largeBox {get; set;}
         protected BoundingBox[] collisionBox;
 
+        
         public GameObject() {
 
         }
 
-        // Position is the center of the object
+        /// <summary>
+        /// Creates a new GameObject
+        /// </summary>
+        /// <param name="texture"></param>
+        /// <param name="position"></param>
         public GameObject(Texture2D texture, Vector3 position) {
             Texture = texture;
             _center = position;
@@ -41,7 +49,13 @@ namespace ControlledSpheres {
             // The large bounding box is 1 unit deep, .5 above and .5 below
             largeBox = new BoundingBox(Center - new Vector3(-TexturePosition, 1), Center + new Vector3(TexturePosition, 1));
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="texture">The texture of this game object</param>
+        /// <param name="position">The center position of this game object</param>
+        /// <param name="velocity">The velocity of this game object </param>
         public GameObject(Texture2D texture, Vector3 position, Vector3 velocity) {
             Texture = texture;
             _center = position;
@@ -51,11 +65,19 @@ namespace ControlledSpheres {
             largeBox = new BoundingBox(Center - new Vector3(-TexturePosition, 1), Center + new Vector3(TexturePosition, 1));
         }
 
+        /// <summary>
+        /// Updates the specified game time.    
+        /// </summary>
+        /// <param name="gameTime">The game time.</param>
         public virtual void Update(GameTime gameTime) {
-            Center += Velocity;
+            Center += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
             largeBox = new BoundingBox(largeBox.Min + Velocity, largeBox.Max + Velocity);
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="spriteBatch"></param>
         public virtual void Draw(SpriteBatch spriteBatch) {
             spriteBatch.Draw(Texture, TexturePosition, Color.Red);
         }
@@ -73,6 +95,12 @@ namespace ControlledSpheres {
         public bool Active { get; private set; }
         public bool Looping { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Animation"/> class.
+        /// </summary>
+        /// <param name="animationStrip">The animation strip.</param>
+        /// <param name="framelength">The framelength.</param>
+        /// <param name="totalLength">The total length.</param>
         public Animation(Texture2D[] animationStrip, int framelength, int totalLength) {
             AnimationSteps = animationStrip;
             AnimationTickLength = framelength;
@@ -81,6 +109,12 @@ namespace ControlledSpheres {
             TextureIndex = 0;
         }
 
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Animation"/> class.
+        /// </summary>
+        /// <param name="animationStrip">The animation strip.</param>
+        /// <param name="framelength">The framelength.</param>
         public Animation(Texture2D[] animationStrip, int framelength) {
             AnimationSteps = animationStrip;
             AnimationTickLength = framelength;
@@ -88,21 +122,40 @@ namespace ControlledSpheres {
             AnimationTimeElapsed = 0;
             TextureIndex = 0;
         }
+
+        /// <summary>
+        /// Begins the animation
+        /// </summary>
         public void Begin() {
             Active = true;
         }
-
-        // Freezes an animation in place, does NOT reset to stage 0
+        
+        /// <summary>
+        /// Freezes an animation in place, does NOT reset to stage 0
+        /// </summary>
         public void Freeze() {
             Active = false;
         }
 
-        // Completely resets an animation to state 0 and turns it off
+        /// <summary> 
+        /// Completely resets an animation to state 0 and turns it off
+        /// </summary>
         public void Reset() {
             Active = false;
             AnimationTimeElapsed = 0;
         }
 
+        /// <summary> 
+        /// The animation will stop animating after it finishes the current loop
+        /// </summary>
+        public void Halt() {
+            Looping = false;
+        }
+
+        /// <summary>
+        /// Updates the animation with the current timing information
+        /// </summary>
+        /// <param name="gameTime">The amount of time elapsed since the last frame</param>
         public void Update(GameTime gameTime) {
             // If the animation is active, the frame counter should increment
             if (Active == true) {
@@ -119,10 +172,21 @@ namespace ControlledSpheres {
             }
         }
 
+        /// <summary>
+        /// Draws the animation's current texture
+        /// </summary>
+        /// <param name="spriteBatch">Spritebatch</param>
+        /// <param name="location">A <see cref="Vector2"/> that determines the location the animation will be drawn to</param>
         public void Draw(SpriteBatch spriteBatch, Vector2 location) {
             spriteBatch.Draw(AnimationSteps[TextureIndex], location);
         }
 
+        /// <summary>
+        /// Draws the animation's current texture
+        /// </summary>
+        /// <param name="spriteBatch">Spritebatch</param>
+        /// <param name="location">A <see cref="Vector2"/> that determines the location the animation will be drawn to</param>
+        /// <param name="color">The tinting color of the animation</param>
         public void Draw(SpriteBatch spriteBatch, Vector2 location, Color color) {
             spriteBatch.Draw(AnimationSteps[TextureIndex], location, color);
         }
