@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.IO;
 
 using Microsoft.Xna.Framework;
@@ -19,12 +20,13 @@ namespace ControlledSpheres {
         ExplosionThreeRedLeft, ExplosionThreeRedRight, ExplosionThreeRedUp, ExplosionThreeRedDown,
         ExplosionThreeBlueLeft, ExplosionThreeBlueRight, ExplosionThreeBlueUp, ExplosionThreeBlueDown,
     }
-
+    
     class TextureManager {
         ContentManager Content;
         GraphicsDevice Graphics;
         public static Dictionary<TextureNames, Texture2D[]> TextureAtlas = new Dictionary<TextureNames, Texture2D[]>();
-
+        static Regex FilenameSplit = new Regex("Content" + Path.DirectorySeparatorChar + "Art" + Path.DirectorySeparatorChar +
+            "\\w\\.png");
         public TextureManager(ContentManager content, GraphicsDevice graphics) {
             Content = content;
             Graphics = graphics;
@@ -160,10 +162,22 @@ namespace ControlledSpheres {
 
         }
 
+        public void LoadAllTextures() {
+            // Get the list of files in Content/Art, then split out the Content/Art part and drop the .xnb
+            var FilenameList = Directory.EnumerateFiles("Content" + Path.DirectorySeparatorChar + "Art");
+            FilenameList = FilenameList.Select<string, string>(x => x.Split(Path.DirectorySeparatorChar).Last<string>()).Select<string, string>(x => x.Split('.').First<string>());
+                           
+            foreach (string s in FilenameList) {
+                Content.Load<Texture2D>("Art" + Path.DirectorySeparatorChar + s);
+                //Console.WriteLine(s);
+                
+            }
+
+        }
         public void WriteStandardizedTextures() {
             FileStream WriteStream;
             
-            string path = "Content" + System.IO.Path.DirectorySeparatorChar + "Art" + System.IO.Path.DirectorySeparatorChar;
+            string path = "Uncompressed" + System.IO.Path.DirectorySeparatorChar + "Content" + System.IO.Path.DirectorySeparatorChar + "Art" + System.IO.Path.DirectorySeparatorChar;
             foreach (var NameTexturePair in TextureAtlas) {
                 Texture2D[] TextureArray = NameTexturePair.Value;
                 string textureName = Enum.GetName(typeof(TextureNames), NameTexturePair.Key);
