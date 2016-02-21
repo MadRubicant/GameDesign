@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace ControlledSpheres {
+namespace ControlledSpheres.AI {
     class Path {
         Dictionary<AnimatedGameObject, Waypoint> PathObjects;
         Waypoint Head;
