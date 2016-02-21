@@ -8,6 +8,7 @@ using System.Linq;
 
 using ExtensionMethods;
 
+using ControlledSpheres.IO;
 namespace ControlledSpheres {
     /// <summary>
     /// This is the main type for your game
@@ -22,7 +23,8 @@ namespace ControlledSpheres {
 
         Animation DebugAnimation;
         List<AnimatedGameObject> SpawnedAnimations;
-        TextureManager Loader;
+        TextureManager TexManager;
+
         public Main()
             : base() {
             graphics = new GraphicsDeviceManager(this);
@@ -57,6 +59,7 @@ namespace ControlledSpheres {
         /// </summary>
         protected override void LoadContent() {
             // Create a new SpriteBatch, which can be used to draw textures.
+            TexManager = new TextureManager(Content, GraphicsDevice);
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Texture2D background = Content.Load<Texture2D>("light_sand_template");
             //testLevel = new GameLevel(background);
@@ -64,17 +67,16 @@ namespace ControlledSpheres {
             graphics.PreferredBackBufferHeight = background.Height / 4 * 3;
             graphics.PreferredBackBufferWidth = background.Width / 4 * 3;
             graphics.ApplyChanges();
-            Loader = new TextureManager(Content, GraphicsDevice);
-
 
             Texture2D circle = Content.Load<Texture2D>("circle");
             Sphere = new AnimatedGameObject(circle, new Vector3(50, 50, 0));
-            Loader.LoadExplosion1();
-            DebugAnimation = new Animation(TextureManager.TextureAtlas[TextureNames.ExplosionOneRed], 20);
+            DebugAnimation = new Animation(TexManager["ExplosionOneRed"], 20);
             DebugAnimation.Looping = true;
             DebugAnimation.Begin();
-
-            Loader.WriteStandardizedTextures();
+            //TexManager.LoadAllTextures();
+            TexManager.LoadSpecificTexture("ExplosionThreeRed");
+            TexManager.LoadSpecificTexture("ExplosionThreeBlue");
+            //  Loader.WriteStandardizedTextures();
             
 
 
@@ -125,37 +127,37 @@ namespace ControlledSpheres {
         }
 
         public void HandleButtonPress(object sender, InputStateEventArgs e) {
-            TextureNames explColor = TextureNames.Debug;
+            string explColor = "debug";
             switch (e.Button) {
                 case AllButtons.Q:
-                    explColor = TextureNames.ExplosionThreeRedDown;
+                    explColor = "ExplosionThreeRedDown";
                     break;
                 case AllButtons.W:
-                    explColor = TextureNames.ExplosionThreeRedLeft;
+                    explColor = "ExplosionThreeRedLeft";
                     break;
                 case AllButtons.E:
-                    explColor = TextureNames.ExplosionThreeRedRight;
+                    explColor = "ExplosionThreeRedRight";
                     break;
                 case AllButtons.R:
-                    explColor = TextureNames.ExplosionThreeRedUp;
+                    explColor = "ExplosionThreeRedUp";
                     break;
                 case AllButtons.A:
-                    explColor = TextureNames.ExplosionThreeBlueDown;
+                    explColor = "ExplosionThreeBlueDown";
                     break;
                 case AllButtons.S:
-                    explColor = TextureNames.ExplosionThreeBlueLeft;
+                    explColor = "ExplosionThreeBlueLeft";
                     break;
                 case AllButtons.D:
-                    explColor = TextureNames.ExplosionThreeBlueRight;
+                    explColor = "ExplosionThreeBlueRight";
                     break;
                 case AllButtons.F:
-                    explColor = TextureNames.ExplosionThreeBlueUp;
+                    explColor = "ExplosionThreeBlueUp";
                     break;
                 default:
                     return;
             }
             Animation[] a = new Animation[1];
-            a[0] = new Animation(TextureManager.TextureAtlas[explColor], 30);
+            a[0] = new Animation(TexManager[explColor], 30);
             a[0].Begin();
             SpawnedAnimations.Add(new AnimatedGameObject(a, e.MousePos.ToVector3()));
             Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
@@ -164,7 +166,9 @@ namespace ControlledSpheres {
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
             Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
             if (e.Button == AllButtons.MouseButtonLeft)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), Color.Aquamarine));
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), "ExplosionThreeRed"));
+            if (e.Button == AllButtons.MouseButtonRight)
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), "ExplosionThreeBlue"));
                 //Sphere.Center = e.MousePos.ToVector3();
             
         }
@@ -185,24 +189,9 @@ namespace ControlledSpheres {
         /// <param name="Position">The position.</param>
         /// <param name="color">The color.</param>
         /// <returns></returns>
-        public AnimatedGameObject NewExplosion(Vector3 Position, Color color) {
-            TextureNames ExplColor;
-            if (color == Color.Blue)
-                ExplColor = TextureNames.ExplosionThreeGreenLeft;
-            else if (color == Color.Yellow)
-                ExplColor = TextureNames.ExplosionThreeGreenRight;
-            else if (color == Color.Green)
-                ExplColor = TextureNames.ExplosionThreeGreenUp;
-            else if (color == Color.Red)
-                ExplColor = TextureNames.ExplosionThreeGreenDown;
-            else if (color == Color.Orange)
-                ExplColor = TextureNames.ExplosionThreeOrangeLeft;
-            else if (color == Color.Aquamarine)
-                ExplColor = TextureNames.ExplosionTwoBlue;
-            else
-                ExplColor = TextureNames.Debug;
+        public AnimatedGameObject NewExplosion(Vector3 Position, string color) {
             Animation[] Anim = new Animation[1];
-            Anim[0] = new Animation(TextureManager.TextureAtlas[ExplColor], 40);
+            Anim[0] = new Animation(TexManager[color], 40);
             AnimatedGameObject AGO = new AnimatedGameObject(Anim, Position, new Vector3(2, 2, 0));
             AGO.Animations[0].Begin();
             return AGO;
