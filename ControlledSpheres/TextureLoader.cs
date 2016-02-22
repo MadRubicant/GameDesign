@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Threading;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,19 +16,22 @@ namespace ControlledSpheres.IO {
     class TextureManager {
         ContentManager Content;
         GraphicsDevice Graphics;
-        private Dictionary<string, Texture2D[]> TextureDict;
-        private static HashSet<string> CachedFilenames;
+        private ConcurrentDictionary<string, Texture2D[]> TextureDict;
+        private static ConcurrentBag<string> BadFilenames;
         Texture2D[] MagentaBlackErrorTexture;
         DirectoryInfo ContentDirInfo;
+        ConcurrentQueue<string> RequestedTextures;
+        Thread TextureLoadingThread;
+        volatile bool LoadingTextures;
 
         public TextureManager(ContentManager content, GraphicsDevice graphics) {
             Content = content;
             Graphics = graphics;
-            TextureDict = new Dictionary<string, Texture2D[]>();
+            TextureDict = new ConcurrentDictionary<string, Texture2D[]>();
             ContentDirInfo = new DirectoryInfo("Content" + Path.DirectorySeparatorChar);
-
-            if (CachedFilenames == null) 
-                EnumerateTextureDirectory();
+            RequestedTextures = new ConcurrentQueue<string>();
+            if (BadFilenames == null)
+                BadFilenames = new ConcurrentBag<string>();
         }
 
         /// <summary>
@@ -36,12 +41,16 @@ namespace ControlledSpheres.IO {
         /// <returns>The <see cref="Texture2D"/> associated with Key</returns>
         public Texture2D[] this[string Key] {
             get {
+                // If it's loaded, take it
                 if (TextureDict.ContainsKey(Key)) {
                     return TextureDict[Key];
                 }
-                else if (CachedFilenames.Contains(Key)) {
-                    return null;
+                // If it's not loaded but it hasn't been tried yet, have an error tex for now but I'll try loading it
+                else if (!BadFilenames.Contains(Key)) {
+                    requestTextureLoad(Key);
+                    return getMagentaBlackErrorTexture();
                 }
+                // Unloaded and we've tried loading it before
                 else return getMagentaBlackErrorTexture();
             }
         }
@@ -72,33 +81,62 @@ namespace ControlledSpheres.IO {
             return MagentaBlackErrorTexture;
         }
 
-        public void LoadAllTextures() {
-            // Get the list of files in Content/Art, then split out the Content/Art part and drop the .xnb
-            foreach (string s in CachedFilenames) {
-                Content.Load<Texture2D>("Art" + Path.DirectorySeparatorChar + s);
-                Console.WriteLine(s);
-                
-            }
-
+        public void requestTextureLoad(string TextureName) {
+            if (!TextureDict.ContainsKey(TextureName))
+                RequestedTextures.Enqueue(TextureName);
         }
 
-        public void LoadSpecificTexture(string name) {
+        public void requestTextureLoad(IEnumerable<string> TextureNames) {
+            foreach (string s in TextureNames) {
+                requestTextureLoad(s);
+            }
+        }
+
+        public void LoadAllTextures() {
+            Console.WriteLine("Loading {0} textures on background thread", RequestedTextures.Count);
+            bool DequeueSucceeded = true;
+            while (DequeueSucceeded == true) {
+                string texname;
+                DequeueSucceeded = RequestedTextures.TryDequeue(out texname);
+                if (DequeueSucceeded == true) {
+                    var Tex = LoadSpecificTexture(texname);
+                    TextureDict[texname] = Tex;
+                }
+            }
+            LoadingTextures = false;
+        }
+
+        public void BeginLoadTextures() {
+            if (LoadingTextures == false) {
+                LoadingTextures = true;
+                TextureLoadingThread = new Thread(new ThreadStart(this.LoadAllTextures));
+                TextureLoadingThread.Start();
+            }
+        }
+
+        public int WaitingRequestedTextures() {
+            return RequestedTextures.Count;
+        }
+
+        private Texture2D[] LoadSpecificTexture(string name){
             char[] splitchar = {'.'};
             var FilenameList = ContentDirInfo.EnumerateFiles("Art" + Path.DirectorySeparatorChar + name + "*.xnb", SearchOption.AllDirectories).Select<FileInfo, string>(x => x.Name).Select<string, string>(
                 x => x.Split(splitchar).First<string>());
             Regex re = new Regex("[0-9]+");
             FilenameList = FilenameList.OrderBy<string, int>((x => int.Parse(re.Match(x).Value)));
-            foreach (var s in FilenameList) {
-                Console.WriteLine(s);
-            }
             int TexCount = FilenameList.Count<string>();
+            if (TexCount == 0) {
+                // TODO add logging
+                BadFilenames.Add(name);
+                return getMagentaBlackErrorTexture();
+            }
             Texture2D[] TexArray = new Texture2D[TexCount];
             int i = 0;
             foreach (string s in FilenameList) {
                 TexArray[i] = Content.Load<Texture2D>("Art" + Path.DirectorySeparatorChar + s);
                 i++;
             }
-            TextureDict.Add(name, TexArray);
+            return TexArray;
         }
 
         public void WriteStandardizedTextures() {
@@ -115,14 +153,5 @@ namespace ControlledSpheres.IO {
             }
         }
 
-        private void EnumerateTextureDirectory() {
-            string[] FilenameList = Directory.EnumerateFiles("Content" + Path.DirectorySeparatorChar + "Art", "*.xnb", SearchOption.AllDirectories).ToArray<string>();
-            FilenameList = FilenameList.Select<string, string>(x => x.Split(Path.DirectorySeparatorChar).Last<string>()).Select<string, string>(x => x.Split('.').First<string>()).ToArray<string>();
-            FilenameList.OrderBy<string, string>(x => x);
-            CachedFilenames = new HashSet<string>(FilenameList);
-            foreach (string s in CachedFilenames) {
-                //Console.WriteLine(s);
-            }
-        }
     }
 }

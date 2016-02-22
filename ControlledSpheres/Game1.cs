@@ -73,9 +73,9 @@ namespace ControlledSpheres {
             DebugAnimation = new Animation(TexManager["ExplosionOneRed"], 20);
             DebugAnimation.Looping = true;
             DebugAnimation.Begin();
-            //TexManager.LoadAllTextures();
-            TexManager.LoadSpecificTexture("ExplosionThreeRed");
-            TexManager.LoadSpecificTexture("ExplosionThreeBlue");
+            TexManager.requestTextureLoad("ExplosionThreeRed");
+            TexManager.requestTextureLoad("ExplosionThreeBlue");
+            TexManager.BeginLoadTextures();
             //  Loader.WriteStandardizedTextures();
             
 
@@ -105,6 +105,8 @@ namespace ControlledSpheres {
                 a.Update(gameTime);
             }
             SpawnedAnimations = SpawnedAnimations.Where<AnimatedGameObject>(x => x.Animations[0].Active == true).ToList<AnimatedGameObject>();
+            if (TexManager.WaitingRequestedTextures() > 0)
+                TexManager.BeginLoadTextures();
             base.Update(gameTime);
         }
 
@@ -115,13 +117,9 @@ namespace ControlledSpheres {
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
-            // TODO: Add your drawing code here
-            //Sphere.Draw(spriteBatch);
-            //DebugAnimation.Draw(spriteBatch, new Vector2(50, 50));
             foreach (AnimatedGameObject a in SpawnedAnimations) {
                 a.Draw(spriteBatch);
             }
-            //spriteBatch.Draw(TextureManager.TextureAtlas[TextureNames.Debug][0], new Vector2(), Color.White);
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -153,6 +151,9 @@ namespace ControlledSpheres {
                 case AllButtons.F:
                     explColor = "ExplosionThreeBlueUp";
                     break;
+                case AllButtons.Spacebar:
+                    explColor = "ExplosionThreGreen";
+                    break;
                 default:
                     return;
             }
@@ -160,11 +161,11 @@ namespace ControlledSpheres {
             a[0] = new Animation(TexManager[explColor], 30);
             a[0].Begin();
             SpawnedAnimations.Add(new AnimatedGameObject(a, e.MousePos.ToVector3()));
-            Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
+            //Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
         }
 
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
-            Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
+            //Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
             if (e.Button == AllButtons.MouseButtonLeft)
                 SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), "ExplosionThreeRed"));
             if (e.Button == AllButtons.MouseButtonRight)
@@ -179,7 +180,7 @@ namespace ControlledSpheres {
         /// <param name="sender">The sender.</param>
         /// <param name="e">The <see cref="InputStateEventArgs"/> instance containing the event data.</param>
         public void HandleMouseMovement(object sender, InputStateEventArgs e) {
-            Console.WriteLine(e.MouseDelta.ToString());
+            //Console.WriteLine(e.MouseDelta.ToString());
             //Sphere.Center = e.MousePos.ToVector3();
         }
 
