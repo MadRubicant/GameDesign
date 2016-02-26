@@ -13,26 +13,28 @@ namespace ControlledSpheres {
     public class GameObject {
         public Texture2D Texture {get; set;}
         public Vector2 TexturePosition { get; private set; }
-        private Vector3 _center;
-        public Vector3 Center {
+        private Vector2 _center;
+        public Vector2 Center {
             get {
             return _center;
         }
             set {
-                Vector3 diff = _center - TexturePosition.ToVector3();
+                Vector2 diff = _center - TexturePosition;
                 _center = value;
-                TexturePosition = (_center - diff).ToVector2();
+                TexturePosition = (_center - diff);
+                Hitbox.Offset(diff);
             }
         }
 
         /// <summary>
         /// Velocity must be in Units per second
         /// </summary>
-        public Vector3 Velocity { get; set; }
-        public BoundingBox largeBox {get; set;}
-        protected BoundingBox[] collisionBox;
-
+        public Vector2 Velocity { get; set; }
+        public Rectangle Hitbox {get; private set;}
+        public Vector2 RotationZero { get; set; }
+        public Vector2 Rotation { get; set; }
         
+        #region Constructors
         public GameObject() {
 
         }
@@ -42,12 +44,12 @@ namespace ControlledSpheres {
         /// </summary>
         /// <param name="texture"></param>
         /// <param name="position"></param>
-        public GameObject(Texture2D texture, Vector3 position) {
+        public GameObject(Texture2D texture, Vector2 position) {
             Texture = texture;
             _center = position;
             TexturePosition = new Vector2(Center.X - Texture.Width / 2, Center.Y - Texture.Height / 2);
-            // The large bounding box is 1 unit deep, .5 above and .5 below
-            largeBox = new BoundingBox(Center - new Vector3(-TexturePosition, 1), Center + new Vector3(TexturePosition, 1));
+            Hitbox = texture.Bounds;
+            Hitbox.Offset(TexturePosition);
         }
         
         /// <summary>
@@ -56,14 +58,16 @@ namespace ControlledSpheres {
         /// <param name="texture">The texture of this game object</param>
         /// <param name="position">The center position of this game object</param>
         /// <param name="velocity">The velocity of this game object </param>
-        public GameObject(Texture2D texture, Vector3 position, Vector3 velocity) {
+        public GameObject(Texture2D texture, Vector2 position, Vector2 velocity) {
             Texture = texture;
             _center = position;
             Velocity = velocity;
             TexturePosition = new Vector2(Center.X - Texture.Width / 2, Center.Y - Texture.Height / 2);
+            Hitbox = texture.Bounds;
+            Hitbox.Offset(TexturePosition);
             // The large bounding box is 1 unit deep, .5 above and .5 below
-            largeBox = new BoundingBox(Center - new Vector3(-TexturePosition, 1), Center + new Vector3(TexturePosition, 1));
         }
+        #endregion
 
         /// <summary>
         /// Updates the specified game time.    
@@ -71,7 +75,6 @@ namespace ControlledSpheres {
         /// <param name="gameTime">The game time.</param>
         public virtual void Update(GameTime gameTime) {
             Center += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            largeBox = new BoundingBox(largeBox.Min + Velocity, largeBox.Max + Velocity);
         }
         
         /// <summary>
@@ -79,7 +82,12 @@ namespace ControlledSpheres {
         /// </summary>
         /// <param name="spriteBatch"></param>
         public virtual void Draw(SpriteBatch spriteBatch) {
-            spriteBatch.Draw(Texture, TexturePosition, Color.Red);
+            spriteBatch.Draw(Texture, TexturePosition, Color.White);
+        }
+
+        public virtual void Draw(SpriteBatch spriteBatch, float Rotation) {
+            Vector2 RotationCenter = new Vector2(this.Texture.Width, this.Texture.Height);
+            spriteBatch.Draw(Texture, RotationCenter + TexturePosition, null, Color.White, Rotation - RotationZero.Angle(), RotationCenter / 2, 1f, SpriteEffects.None, 0f);
         }
     }  
 
@@ -178,7 +186,7 @@ namespace ControlledSpheres {
         /// <param name="spriteBatch">Spritebatch</param>
         /// <param name="location">A <see cref="Vector2"/> that determines the location the animation will be drawn to</param>
         public void Draw(SpriteBatch spriteBatch, Vector2 location) {
-            spriteBatch.Draw(AnimationSteps[TextureIndex], location);
+            spriteBatch.Draw(AnimationSteps[TextureIndex], location, Color.White);
         }
 
         /// <summary>
@@ -191,6 +199,11 @@ namespace ControlledSpheres {
             spriteBatch.Draw(AnimationSteps[TextureIndex], location, color);
         }
 
+        public void Draw(SpriteBatch spriteBatch, Vector2 location, Color color, float Rotation) {
+            Vector2 RotationCenter = new Vector2(this.AnimationSteps[TextureIndex].Width, this.AnimationSteps[TextureIndex].Height) / 2f;
+            spriteBatch.Draw(this.AnimationSteps[TextureIndex], location + RotationCenter, null, Color.White, Rotation, RotationCenter, 1f, SpriteEffects.None, 0f);
+        }
+
         public Texture2D getIdleTexture() {
             return AnimationSteps[0];
         }
@@ -200,29 +213,46 @@ namespace ControlledSpheres {
     public class AnimatedGameObject : GameObject {
         public Animation[] Animations;
         int currentAnimation = 0;
-
-        public AnimatedGameObject(Animation[] animationList, Vector3 position)
+        // A normalized vector that gives the rotation with respect to
+        #region Constructors
+        public AnimatedGameObject(Animation[] animationList, Vector2 position)
             : base(animationList[0].getIdleTexture(), position) {
             Animations = animationList;
         }
 
-        public AnimatedGameObject(Animation[] animationList, Vector3 position, Vector3 velocity)
+        public AnimatedGameObject(Animation[] animationList, Vector2 position, Vector2 velocity)
             : base(animationList[0].getIdleTexture(), position, velocity) {
                 Animations = animationList;
         }
+
+        public AnimatedGameObject(Animation animation, Vector2 position)
+            : base(animation.getIdleTexture(), position) {
+            Animations = new Animation[1];
+            Animations[0] = animation;
+        }
+
+        public AnimatedGameObject(Animation animation, Vector2 position, Vector2 velocity)
+            : base(animation.getIdleTexture(), position, velocity) {
+            Animations = new Animation[1];
+            Animations[0] = animation;
+        }
+
         // This is more of a debugging version to let me spawn an object without making up an animation for it
-        public AnimatedGameObject(Texture2D texture, Vector3 position)
+        public AnimatedGameObject(Texture2D texture, Vector2 position)
             : base(texture, position) {
                 Texture2D[] singleTexture = new Texture2D[1];
                 singleTexture[0] = texture;
                 Animations = new Animation[1];
                 Animations[0] = new Animation(singleTexture, 1, 1);
         }
-
+        #endregion
         public override void Draw(SpriteBatch spriteBatch) {
-            Animations[currentAnimation].Draw(spriteBatch, this.TexturePosition);
+            Animations[currentAnimation].Draw(spriteBatch, this.TexturePosition, Color.White, Rotation.Angle() - RotationZero.Angle());
         }
 
+        public override void Draw(SpriteBatch spriteBatch, float Rotation) {
+            Animations[currentAnimation].Draw(spriteBatch, this.TexturePosition, Color.White, Rotation);
+        }
         public override void Update(GameTime gameTime) {
             base.Update(gameTime);
             Animations[currentAnimation].Update(gameTime);
