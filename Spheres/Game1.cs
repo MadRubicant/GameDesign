@@ -30,6 +30,11 @@ namespace Spheres {
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
             graphics.PreferredBackBufferWidth = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
+            IntPtr hWnd = this.Window.Handle;
+            var control = System.Windows.Forms.Control.FromHandle(hWnd);
+            var form = control.FindForm();
+            form.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            form.WindowState = System.Windows.Forms.FormWindowState.Maximized;  
             graphics.IsFullScreen = true;
             this.IsMouseVisible = true;
             Content.RootDirectory = "Content";
@@ -121,7 +126,7 @@ namespace Spheres {
             foreach (Primitive p in Circles) {
                 p.Draw(spriteBatch);
             }
-            gui.Draw(gameTime, spriteBatch);
+            //gui.Draw(gameTime, spriteBatch);
             spriteBatch.End();
             // TODO: Add your drawing code here
             

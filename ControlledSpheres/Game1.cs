@@ -17,7 +17,7 @@ namespace ControlledSpheres {
     public class Main : Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-           //GameLevel testLevel;
+        //GameLevel testLevel;
         AnimatedGameObject Sphere;
         InputHandler PlayerInputHandler;
         InputLogic Keybindings;
@@ -107,7 +107,7 @@ namespace ControlledSpheres {
         /// all content.
         /// </summary>
         protected override void UnloadContent() {
-        
+
         }
 
         /// <summary>
@@ -197,8 +197,8 @@ namespace ControlledSpheres {
                 SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector2(), "ExplosionThreeRed"));
             if (e.Button == AllButtons.MouseButtonRight)
                 SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector2(), "ExplosionThreeBlue"));
-                //Sphere.Center = e.MousePos.ToVector3();
-            
+            //Sphere.Center = e.MousePos.ToVector3();
+
         }
 
         /// <summary>
