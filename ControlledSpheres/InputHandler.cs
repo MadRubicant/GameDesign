@@ -61,6 +61,11 @@ namespace ControlledSpheres {
         // MouseMovement... idk, I'll figure it out
         public event InputEvent MouseMovement;
 
+        public Vector2 MousePos {
+            get {
+                return this.MouseCurrent.Position.ToVector2();
+            }
+        }
         KeyboardState KeyboardCurrent, KeyboardPrevious;
         MouseState MouseCurrent, MousePrevious;
         GamePadState GamepadCurrent, GamepadPrevious;
