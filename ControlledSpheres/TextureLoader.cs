@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Threading;
+using System.Timers;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -22,7 +23,7 @@ namespace ControlledSpheres.IO {
         DirectoryInfo ContentDirInfo;
         ConcurrentQueue<string> RequestedTextures;
         Thread TextureLoadingThread;
-        volatile bool LoadingTextures;
+        public volatile bool LoadingTextures;
 
         public TextureManager(ContentManager content, GraphicsDevice graphics) {
             Content = content;
@@ -122,14 +123,20 @@ namespace ControlledSpheres.IO {
             char[] splitchar = {'.'};
             var FilenameList = ContentDirInfo.EnumerateFiles("Art" + Path.DirectorySeparatorChar + name + "*.xnb", SearchOption.AllDirectories).Select<FileInfo, string>(x => x.Name).Select<string, string>(
                 x => x.Split(splitchar).First<string>());
-            Regex re = new Regex("[0-9]+");
-            FilenameList = FilenameList.OrderBy<string, int>((x => int.Parse(re.Match(x).Value)));
             int TexCount = FilenameList.Count<string>();
             if (TexCount == 0) {
                 // TODO add logging
                 BadFilenames.Add(name);
                 return getMagentaBlackErrorTexture();
             }
+            if (TexCount == 1) {
+                Texture2D Tex = Content.Load<Texture2D>("Art" + Path.DirectorySeparatorChar + FilenameList.First<string>());
+                Texture2D[] texarray = new Texture2D[1];
+                texarray[0] = Tex;
+                return texarray;
+            }
+            Regex re = new Regex("[0-9]+");
+            FilenameList = FilenameList.OrderBy<string, int>((x => int.Parse(re.Match(x).Value)));
             Texture2D[] TexArray = new Texture2D[TexCount];
             int i = 0;
             foreach (string s in FilenameList) {
