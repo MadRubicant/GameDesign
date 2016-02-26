@@ -25,9 +25,18 @@ namespace ExtensionMethods {
             return new Vector3(point.X, point.Y, 0);
         }
 
-        public static float Angle(this Vector3 vector) {
-            throw new NotImplementedException();
-            return 0f;
+        /// <summary>
+        /// Calculates the angle of the vector with respect to the x-axis
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public static float Angle(this Vector2 vector) {
+            if (vector == Vector2.Zero)
+                return 0f;
+            float angle = (float)Math.Atan(vector.Y / vector.X);
+            if (Math.Sign(vector.X) < 0)
+                angle += MathHelper.Pi;
+            return angle;
         }
 
     }
