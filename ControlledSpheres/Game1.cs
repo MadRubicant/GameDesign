@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Utilities;
 
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,12 @@ namespace ControlledSpheres {
         Animation DebugAnimation;
         List<AnimatedGameObject> SpawnedAnimations;
         TextureManager TexManager;
+        Texture2D Background;
+        Creep DebugCreep;
+        Tower DebugTower;
+        float DebugRotation = 0f;
 
+        EntityManager MainEntityManager;
         public Main()
             : base() {
             graphics = new GraphicsDeviceManager(this);
@@ -49,6 +55,8 @@ namespace ControlledSpheres {
             PlayerInputHandler.MouseMovement += this.HandleMouseMovement;
             PlayerInputHandler.ButtonHeld += this.HandleButtonHeld;
             Keybindings = new InputLogic();
+
+            MainEntityManager = new EntityManager();
             base.Initialize();
             Console.WriteLine("Program initialized");
         }
@@ -61,24 +69,36 @@ namespace ControlledSpheres {
             // Create a new SpriteBatch, which can be used to draw textures.
             TexManager = new TextureManager(Content, GraphicsDevice);
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            Texture2D background = Content.Load<Texture2D>("light_sand_template");
+            Background = Content.Load<Texture2D>("Art\\light_sand_template");
             //testLevel = new GameLevel(background);
-            this.Window.Position = new Point((graphics.PreferredBackBufferHeight - background.Height) / 2, (this.graphics.PreferredBackBufferWidth - background.Width) / 2);
-            graphics.PreferredBackBufferHeight = background.Height / 4 * 3;
-            graphics.PreferredBackBufferWidth = background.Width / 4 * 3;
+            this.Window.Position = new Point((graphics.PreferredBackBufferHeight - Background.Height) / 2, (this.graphics.PreferredBackBufferWidth - Background.Width) / 2);
+            graphics.PreferredBackBufferHeight = Background.Height / 4 * 3;
+            graphics.PreferredBackBufferWidth = Background.Width / 4 * 3;
             graphics.ApplyChanges();
-
             Texture2D circle = Content.Load<Texture2D>("circle");
-            Sphere = new AnimatedGameObject(circle, new Vector3(50, 50, 0));
+            Sphere = new AnimatedGameObject(circle, new Vector2(50, 50));
             DebugAnimation = new Animation(TexManager["ExplosionOneRed"], 20);
             DebugAnimation.Looping = true;
             DebugAnimation.Begin();
             TexManager.requestTextureLoad("ExplosionThreeRed");
             TexManager.requestTextureLoad("ExplosionThreeBlue");
+            TexManager.requestTextureLoad("BasicTower");
+            TexManager.requestTextureLoad("BasicCreep");
+            TexManager.requestTextureLoad("light_sand_template");
             TexManager.BeginLoadTextures();
+            TexManager.requestTextureLoad("ExplosionThreeRed");
             //  Loader.WriteStandardizedTextures();
-            
+            while (TexManager.LoadingTextures == true)
+                ;
+            // While we wait for everything to load - until I implement a proper loading screen
+            // Just spin
 
+            DebugCreep = new Creep(new Animation(TexManager["BasicCreep"], 1), new Vector2(100, 100), 20);
+            DebugCreep.RotationZero = new Vector2(0, 1);
+            DebugTower = new Tower(new Animation(TexManager["BasicTower"], 1), new Vector2(300, 300));
+            MainEntityManager.AddCreep(DebugCreep);
+            MainEntityManager.AddTower(DebugTower);
+            PlayerInputHandler.MouseMovement += MainEntityManager.GetMousePos;
 
         }
 
@@ -87,6 +107,7 @@ namespace ControlledSpheres {
         /// all content.
         /// </summary>
         protected override void UnloadContent() {
+        
         }
 
         /// <summary>
@@ -104,6 +125,8 @@ namespace ControlledSpheres {
             foreach (AnimatedGameObject a in SpawnedAnimations) {
                 a.Update(gameTime);
             }
+            DebugRotation += .01f;
+            MainEntityManager.Update(gameTime);
             SpawnedAnimations = SpawnedAnimations.Where<AnimatedGameObject>(x => x.Animations[0].Active == true).ToList<AnimatedGameObject>();
             if (TexManager.WaitingRequestedTextures() > 0)
                 TexManager.BeginLoadTextures();
@@ -117,6 +140,10 @@ namespace ControlledSpheres {
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
+            spriteBatch.Draw(Background, new Vector2(0, 0), Color.White);
+            DebugTower.Draw(spriteBatch);
+            //DebugTower.Draw(spriteBatch);
+            DebugCreep.Draw(spriteBatch);
             foreach (AnimatedGameObject a in SpawnedAnimations) {
                 a.Draw(spriteBatch);
             }
@@ -125,6 +152,7 @@ namespace ControlledSpheres {
         }
 
         public void HandleButtonPress(object sender, InputStateEventArgs e) {
+            Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
             string explColor = "debug";
             switch (e.Button) {
                 case AllButtons.Q:
@@ -152,7 +180,7 @@ namespace ControlledSpheres {
                     explColor = "ExplosionThreeBlueUp";
                     break;
                 case AllButtons.Spacebar:
-                    explColor = "ExplosionThreGreen";
+                    explColor = "ExplosionThreeGreen";
                     break;
                 default:
                     return;
@@ -160,16 +188,15 @@ namespace ControlledSpheres {
             Animation[] a = new Animation[1];
             a[0] = new Animation(TexManager[explColor], 30);
             a[0].Begin();
-            SpawnedAnimations.Add(new AnimatedGameObject(a, e.MousePos.ToVector3()));
-            //Console.WriteLine("Button {0} Pressed, at position {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
+            SpawnedAnimations.Add(new AnimatedGameObject(a, e.MousePos.ToVector2()));
         }
 
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
-            //Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
+            Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
             if (e.Button == AllButtons.MouseButtonLeft)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), "ExplosionThreeRed"));
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector2(), "ExplosionThreeRed"));
             if (e.Button == AllButtons.MouseButtonRight)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector3(), "ExplosionThreeBlue"));
+                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector2(), "ExplosionThreeBlue"));
                 //Sphere.Center = e.MousePos.ToVector3();
             
         }
@@ -190,12 +217,28 @@ namespace ControlledSpheres {
         /// <param name="Position">The position.</param>
         /// <param name="color">The color.</param>
         /// <returns></returns>
-        public AnimatedGameObject NewExplosion(Vector3 Position, string color) {
+        public AnimatedGameObject NewExplosion(Vector2 Position, string color) {
             Animation[] Anim = new Animation[1];
             Anim[0] = new Animation(TexManager[color], 40);
-            AnimatedGameObject AGO = new AnimatedGameObject(Anim, Position, new Vector3(2, 2, 0));
+            AnimatedGameObject AGO = new AnimatedGameObject(Anim, Position, new Vector2(2, 2));
             AGO.Animations[0].Begin();
             return AGO;
+        }
+
+        public Tower NewTower(Vector2 Position) {
+            Animation Toweranim = new Animation(TexManager["BasicTower"], 1);
+            Animation[] animarr = new Animation[1];
+            animarr[0] = Toweranim;
+            Tower tower = new Tower(animarr, Position);
+            return tower;
+        }
+
+        public Creep NewCreep(Vector2 Position) {
+            Animation Creepanim = new Animation(TexManager["BasicCreep"], 1);
+            Animation[] animarr = new Animation[1];
+            animarr[0] = Creepanim;
+            Creep creep = new Creep(animarr, Position, 30);
+            return creep;
         }
     }
 }
