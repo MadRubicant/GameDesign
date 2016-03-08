@@ -9,6 +9,8 @@ using Microsoft.Xna.Framework.Graphics;
 namespace ControlledSpheres {
     public class Creep : AnimatedGameObject {
         int HP;
+
+        
         public Creep(Animation[] animationList, Vector2 position, int HP)
             : base(animationList, position) {
             this.HP = HP;
@@ -28,6 +30,7 @@ namespace ControlledSpheres {
             : base(animation, position, velocity) {
             this.HP = HP;
         }
+
         public override void Update(GameTime gameTime) {
             base.Update(gameTime);
         }
