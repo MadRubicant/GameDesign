@@ -75,6 +75,7 @@ namespace ControlledSpheres {
         /// <param name="gameTime">The game time.</param>
         public virtual void Update(GameTime gameTime) {
             Center += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            //Console.WriteLine(TexturePosition.ToString());
         }
         
         /// <summary>

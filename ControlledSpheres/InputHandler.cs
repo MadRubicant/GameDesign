@@ -27,11 +27,14 @@ namespace ControlledSpheres {
         ArrowDown, ArrowLeft, ArrowUp, ArrowRight // Arrowkeys
     }
 
-    public enum ModifierKeys { None, LeftShift, LeftControl, LeftAlt, RightShift, RightControl, RightAlt }
+    [Flags]
+    public enum ModifierKeys { None = 0, Left = 1, Right = 2, Control = 4, Alt = 8, Shift = 16, LeftAlt = Left | Alt, RightAlt = Right | Alt,
+        LeftControl = Left | Control, RightControl = Right | Control, LeftShift = Left | Shift, RightShift = Right | Shift,
+    }
 
     public class InputStateEventArgs : EventArgs {
         public AllButtons Button { get; set; }
-        public ModifierKeys[] Modifier { get; set; }
+        public ModifierKeys Modifier { get; set; }
         public Point MousePos {get; set;}
         public Point MouseDelta { get; set; }
 
@@ -93,14 +96,14 @@ namespace ControlledSpheres {
             // TODO make this actually send modifiers and keys at the same time
             InputStateEventArgs args = new InputStateEventArgs();
 
-            List<ModifierKeys> ModKeys = new List<ModifierKeys>();
+            ModifierKeys ModKey = ModifierKeys.None;
             foreach (Keys K in CurrentKeyState) {
                 ModifierKeys MK = mapKeytoModifier(K);
                 if (MK != ModifierKeys.None) {
-                    ModKeys.Add(MK);
+                    ModKey |= MK;
                 }
             }
-            args.Modifier = ModKeys.ToArray();
+            args.Modifier = ModKey;
             args.MousePos = MouseCurrent.Position;
 
             #region Keyboard inputs
