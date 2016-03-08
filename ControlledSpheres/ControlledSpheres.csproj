@@ -41,12 +41,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Creep.cs" />
+    <Compile Include="CreepPath.cs" />
     <Compile Include="EntityManager.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameActions.cs" />
     <Compile Include="GameObject.cs" />
     <Compile Include="InputHandler.cs" />
+    <Compile Include="LevelSetup.cs" />
     <Compile Include="ParticleEngine.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
@@ -60,10 +62,14 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\DebugLevel.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>
