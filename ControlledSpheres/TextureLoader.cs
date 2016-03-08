@@ -49,10 +49,14 @@ namespace ControlledSpheres.IO {
                 // If it's not loaded but it hasn't been tried yet, have an error tex for now but I'll try loading it
                 else if (!BadFilenames.Contains(Key)) {
                     requestTextureLoad(Key);
+                    Console.WriteLine("Texture array named {0} requested, attempting to load from disk", Key);
                     return getMagentaBlackErrorTexture();
                 }
                 // Unloaded and we've tried loading it before
-                else return getMagentaBlackErrorTexture();
+                else {
+                    Console.WriteLine("Texture array named {0} requested and not found on disk", Key);
+                    return getMagentaBlackErrorTexture();
+                }
             }
         }
 
