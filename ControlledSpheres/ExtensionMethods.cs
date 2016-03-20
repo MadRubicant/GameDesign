@@ -45,7 +45,7 @@ namespace ExtensionMethods {
         /// </summary>
         /// <param name="vector"></param>
         /// <param name="Other"></param>
-        /// <returns></returns>
+        /// <returns>The rotated vector</returns>
         public static Vector2 Rotate(this Vector2 vector, Vector2 Other) {
             Other.Normalize();
             Other *= vector.Length();
@@ -61,7 +61,6 @@ namespace ExtensionMethods {
         public static bool FuzzyEqual(this Single flt, float other) {
             float diff = Math.Abs(flt - other);
             float relativeDiff = FloatEpsilon * Math.Max(Math.Abs(flt), Math.Abs(other));
-            Console.WriteLine("{0} <= {1}", diff, relativeDiff);
             if (diff <= relativeDiff)
                 return true;
             else return false;
