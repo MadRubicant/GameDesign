@@ -33,7 +33,7 @@ namespace ControlledSpheres {
                 if (creepPath.UpdateCreep(c, v.Value) == true)
                     DirtyCreeps.Add(c);
                 c.Update(gameTime);
-                c.Rotation = c.Center - MousePos;
+                //c.Rotation = c.Center - MousePos;
             }
             foreach (Creep c in DirtyCreeps)
                 CreepWaypointDict[c]++;

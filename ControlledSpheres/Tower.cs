@@ -6,23 +6,49 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using ControlledSpheres.Graphics;
 namespace ControlledSpheres {
-
-    public interface GameEntity {
-
-    }
+    public delegate Projectile TowerAttack(GameObject Target);
 
     public class Tower : AnimatedGameObject {
-        public Tower(Animation[] animation, Vector2 position)
+        public float Range { get; set; }
+        public float Cooldown { get; set; }
+        private float TimeSinceLastShot;
+        private bool CanFire = true;
+        public TowerAttack AttackType { get; set; }
+
+        public Tower(Animation[] animation, Vector2 position, float range, float CD)
             : base(animation, position) {
-                ;
+                Range = range;
+                Cooldown = CD;
         }
 
-        public Tower(Animation animation, Vector2 position)
+        public Tower(Animation animation, Vector2 position, float range, float CD)
             : base(animation, position) {
-                ;
+                Range = range;
+                Cooldown = CD;
         }
 
+        public override void Update(GameTime gameTime) {
+            base.Update(gameTime);
+            TimeSinceLastShot += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (TimeSinceLastShot > Cooldown) {
+                CanFire = true;
+            }
+        }
+        public Projectile Fire(GameObject Target) {
+            if (AttackType == null) {
+                // TODO add logging
+                return null;
+            }
+            else if (CanFire == true) {
+                TimeSinceLastShot = 0f;
+                CanFire = false;
+                return AttackType(Target);
+            }
+            else return null;
+
+        }
         
     }
 }
