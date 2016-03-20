@@ -40,6 +40,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Animation.cs" />
     <Compile Include="Creep.cs" />
     <Compile Include="CreepPath.cs" />
     <Compile Include="EntityManager.cs" />
@@ -49,9 +50,11 @@
     <Compile Include="GameObject.cs" />
     <Compile Include="InputHandler.cs" />
     <Compile Include="LevelSetup.cs" />
+    <Compile Include="Logging.cs" />
     <Compile Include="ParticleEngine.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Projectile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TextureLoader.cs" />
     <Compile Include="Tower.cs" />
