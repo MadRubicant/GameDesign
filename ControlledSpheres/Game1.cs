@@ -10,6 +10,8 @@ using System.Linq;
 using ExtensionMethods;
 
 using ControlledSpheres.IO;
+using ControlledSpheres.Graphics;
+
 namespace ControlledSpheres {
     /// <summary>
     /// This is the main type for your game
@@ -102,7 +104,7 @@ namespace ControlledSpheres {
             DebugCreep.RotationZero = new Vector2(0, 1);
             DebugCreep2 = new Creep(DebugCreep.Animations[0], new Vector2(200, 100), new Vector2(50f, 50f), 20);
             DebugCreep2.RotationZero = new Vector2(0, 1);
-            DebugTower = new Tower(new Animation(TexManager["BasicTower"], 1), new Vector2(200, 400));
+            DebugTower = new Tower(new Animation(TexManager["BasicTower"], 1), new Vector2(200, 400), 50, 50f);
             MainEntityManager.AddCreep(DebugCreep);
             MainEntityManager.AddTower(DebugTower);
             MainEntityManager.AddCreep(DebugCreep2);
@@ -245,7 +247,7 @@ namespace ControlledSpheres {
             Animation Toweranim = new Animation(TexManager["BasicTower"], 1);
             Animation[] animarr = new Animation[1];
             animarr[0] = Toweranim;
-            Tower tower = new Tower(animarr, Position);
+            Tower tower = new Tower(animarr, Position, 50f, 1.5f);
             return tower;
         }
 

@@ -6,11 +6,13 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using ControlledSpheres.Graphics;
 using ExtensionMethods;
 
 namespace ControlledSpheres {
-
+    public enum RotationMode { None, Velocity, }
     public class GameObject {
+        public RotationMode RotMode { get; set; }
         public Texture2D Texture {get; set;}
         public Vector2 TexturePosition { get; private set; }
         private Vector2 _center;
@@ -33,12 +35,9 @@ namespace ControlledSpheres {
         public Rectangle Hitbox {get; private set;}
         public Vector2 RotationZero { get; set; }
         public Vector2 Rotation { get; set; }
-        
+        public Vector2 RotationCenter { get; set; }
+
         #region Constructors
-        public GameObject() {
-
-        }
-
         /// <summary>
         /// Creates a new GameObject
         /// </summary>
@@ -50,6 +49,7 @@ namespace ControlledSpheres {
             TexturePosition = new Vector2(Center.X - Texture.Width / 2, Center.Y - Texture.Height / 2);
             Hitbox = texture.Bounds;
             Hitbox.Offset(TexturePosition);
+            RotationCenter = new Vector2(Texture.Width / 2, Texture.Height / 2);
         }
         
         /// <summary>
@@ -65,7 +65,17 @@ namespace ControlledSpheres {
             TexturePosition = new Vector2(Center.X - Texture.Width / 2, Center.Y - Texture.Height / 2);
             Hitbox = texture.Bounds;
             Hitbox.Offset(TexturePosition);
-            // The large bounding box is 1 unit deep, .5 above and .5 below
+            RotationCenter = new Vector2(Texture.Width / 2, Texture.Height / 2);
+        }
+
+        public GameObject(Texture2D texture, Vector2 position, Vector2 velocity, RotationMode mode) {
+            Texture = texture;
+            _center = position;
+            Velocity = velocity;
+            TexturePosition = new Vector2(Center.X - Texture.Width / 2, Center.Y - Texture.Height / 2);
+            Hitbox = texture.Bounds;
+            Hitbox.Offset(TexturePosition);
+            RotationCenter = new Vector2(Texture.Width / 2, Texture.Height / 2);
         }
         #endregion
 
@@ -75,7 +85,15 @@ namespace ControlledSpheres {
         /// <param name="gameTime">The game time.</param>
         public virtual void Update(GameTime gameTime) {
             Center += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            //Console.WriteLine(TexturePosition.ToString());
+            switch (RotMode) {
+                case RotationMode.Velocity:
+                    Rotation = Rotation.Rotate(Velocity);
+                    Console.WriteLine(Rotation.Angle());
+                    break;
+                case RotationMode.None:
+                default:
+                    break;
+            }
         }
         
         /// <summary>
@@ -83,132 +101,30 @@ namespace ControlledSpheres {
         /// </summary>
         /// <param name="spriteBatch"></param>
         public virtual void Draw(SpriteBatch spriteBatch) {
-            spriteBatch.Draw(Texture, TexturePosition, Color.White);
+           spriteBatch.Draw(Texture, TexturePosition + RotationCenter, null, Color.White, Rotation.Angle() - RotationZero.Angle(), RotationCenter, 1f, SpriteEffects.None, 0f);
         }
 
-        public virtual void Draw(SpriteBatch spriteBatch, float Rotation) {
-            Vector2 RotationCenter = new Vector2(this.Texture.Width, this.Texture.Height);
-            spriteBatch.Draw(Texture, RotationCenter + TexturePosition, null, Color.White, Rotation - RotationZero.Angle(), RotationCenter / 2, 1f, SpriteEffects.None, 0f);
+        public virtual void Draw(SpriteBatch spriteBatch, float rotation) {
+            spriteBatch.Draw(Texture, RotationCenter + TexturePosition, null, Color.White, rotation - RotationZero.Angle(), RotationCenter, 1f, SpriteEffects.None, 0f);
+        }
+
+
+        public override bool Equals(object obj) {
+            GameObject GM = obj as GameObject;
+            if (GM == null)
+                return false;
+            if (this.Texture != GM.Texture)
+                return false;
+            if (!this.Center.FuzzyEqual(GM.Center))
+                return false;
+            if (!this.Velocity.FuzzyEqual(GM.Velocity))
+                return false;
+            return true;
         }
     }  
 
 
-    public class Animation {
-        // AnimationSteps[0] should be the inactive state, i.e. standing sprite for an rpg
-        public Texture2D[] AnimationSteps;
-        public int AnimationTickLength;
-        public int AnimationTotalLength;
-        public int AnimationTimeElapsed;
-        public int TextureIndex;
 
-        public bool Active { get; private set; }
-        public bool Looping { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Animation"/> class.
-        /// </summary>
-        /// <param name="animationStrip">The animation strip.</param>
-        /// <param name="framelength">The framelength.</param>
-        /// <param name="totalLength">The total length.</param>
-        public Animation(Texture2D[] animationStrip, int framelength, int totalLength) {
-            AnimationSteps = animationStrip;
-            AnimationTickLength = framelength;
-            AnimationTotalLength = totalLength;
-            AnimationTimeElapsed = 0;
-            TextureIndex = 0;
-        }
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Animation"/> class.
-        /// </summary>
-        /// <param name="animationStrip">The animation strip.</param>
-        /// <param name="framelength">The framelength.</param>
-        public Animation(Texture2D[] animationStrip, int framelength) {
-            AnimationSteps = animationStrip;
-            AnimationTickLength = framelength;
-            AnimationTotalLength = AnimationSteps.Length * AnimationTickLength;
-            AnimationTimeElapsed = 0;
-            TextureIndex = 0;
-        }
-
-        /// <summary>
-        /// Begins the animation
-        /// </summary>
-        public void Begin() {
-            Active = true;
-        }
-        
-        /// <summary>
-        /// Freezes an animation in place, does NOT reset to stage 0
-        /// </summary>
-        public void Freeze() {
-            Active = false;
-        }
-
-        /// <summary> 
-        /// Completely resets an animation to state 0 and turns it off
-        /// </summary>
-        public void Reset() {
-            Active = false;
-            AnimationTimeElapsed = 0;
-        }
-
-        /// <summary> 
-        /// The animation will stop animating after it finishes the current loop
-        /// </summary>
-        public void Halt() {
-            Looping = false;
-        }
-
-        /// <summary>
-        /// Updates the animation with the current timing information
-        /// </summary>
-        /// <param name="gameTime">The amount of time elapsed since the last frame</param>
-        public void Update(GameTime gameTime) {
-            // If the animation is active, the frame counter should increment
-            if (Active == true) {
-                AnimationTimeElapsed += (int)gameTime.ElapsedGameTime.TotalMilliseconds;
-                if (AnimationTimeElapsed >= (TextureIndex + 1) * AnimationTickLength) {
-                    TextureIndex++;
-                    if (TextureIndex == AnimationSteps.Length) {
-                        TextureIndex = 0;
-                        AnimationTimeElapsed = 0;
-                        if (Looping == false)
-                            Active = false;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Draws the animation's current texture
-        /// </summary>
-        /// <param name="spriteBatch">Spritebatch</param>
-        /// <param name="location">A <see cref="Vector2"/> that determines the location the animation will be drawn to</param>
-        public void Draw(SpriteBatch spriteBatch, Vector2 location) {
-            spriteBatch.Draw(AnimationSteps[TextureIndex], location, Color.White);
-        }
-
-        /// <summary>
-        /// Draws the animation's current texture
-        /// </summary>
-        /// <param name="spriteBatch">Spritebatch</param>
-        /// <param name="location">A <see cref="Vector2"/> that determines the location the animation will be drawn to</param>
-        /// <param name="color">The tinting color of the animation</param>
-        public void Draw(SpriteBatch spriteBatch, Vector2 location, Color color) {
-            spriteBatch.Draw(AnimationSteps[TextureIndex], location, color);
-        }
-
-        public void Draw(SpriteBatch spriteBatch, Vector2 location, Color color, float Rotation) {
-            Vector2 RotationCenter = new Vector2(this.AnimationSteps[TextureIndex].Width, this.AnimationSteps[TextureIndex].Height) / 2f;
-            spriteBatch.Draw(this.AnimationSteps[TextureIndex], location + RotationCenter, null, Color.White, Rotation, RotationCenter, 1f, SpriteEffects.None, 0f);
-        }
-
-        public Texture2D getIdleTexture() {
-            return AnimationSteps[0];
-        }
-    }
 
     // This class is for sprites with multiple possible animations. Like the player in an RPG
     public class AnimatedGameObject : GameObject {
