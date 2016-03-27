@@ -107,20 +107,6 @@ namespace ControlledSpheres {
         public virtual void Draw(SpriteBatch spriteBatch, float rotation) {
             spriteBatch.Draw(Texture, RotationCenter + TexturePosition, null, Color.White, rotation - RotationZero.Angle(), RotationCenter, 1f, SpriteEffects.None, 0f);
         }
-
-
-        public override bool Equals(object obj) {
-            GameObject GM = obj as GameObject;
-            if (GM == null)
-                return false;
-            if (this.Texture != GM.Texture)
-                return false;
-            if (!this.Center.FuzzyEqual(GM.Center))
-                return false;
-            if (!this.Velocity.FuzzyEqual(GM.Velocity))
-                return false;
-            return true;
-        }
     }  
 
 
