@@ -50,6 +50,7 @@ namespace ControlledSpheres {
             Hitbox = texture.Bounds;
             Hitbox.Offset(TexturePosition);
             RotationCenter = new Vector2(Texture.Width / 2, Texture.Height / 2);
+            Rotation = new Vector2(0, -1);
         }
         
         /// <summary>
@@ -66,6 +67,7 @@ namespace ControlledSpheres {
             Hitbox = texture.Bounds;
             Hitbox.Offset(TexturePosition);
             RotationCenter = new Vector2(Texture.Width / 2, Texture.Height / 2);
+            Rotation = new Vector2(0, -1);
         }
 
         public GameObject(Texture2D texture, Vector2 position, Vector2 velocity, RotationMode mode) {
@@ -76,6 +78,7 @@ namespace ControlledSpheres {
             Hitbox = texture.Bounds;
             Hitbox.Offset(TexturePosition);
             RotationCenter = new Vector2(Texture.Width / 2, Texture.Height / 2);
+            Rotation = new Vector2(0, -1);
         }
         #endregion
 
@@ -88,7 +91,6 @@ namespace ControlledSpheres {
             switch (RotMode) {
                 case RotationMode.Velocity:
                     Rotation = Rotation.Rotate(Velocity);
-                    Console.WriteLine(Rotation.Angle());
                     break;
                 case RotationMode.None:
                 default:
