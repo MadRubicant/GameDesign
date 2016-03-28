@@ -25,6 +25,11 @@ namespace ControlledSpheres {
         }
 
 
+
+        public static Projectile DebugProjectile(GameObject Target, Tower SourceTower) {
+            Projectile Prof = new Projectile(new Animation(TextureManager.MainManager["LaserYellow"], 30), SourceTower.Center, new Vector2(100, 0), Target);
+            return Prof;
+        }
     }
 
     

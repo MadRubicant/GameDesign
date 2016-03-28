@@ -91,25 +91,25 @@ namespace ControlledSpheres {
             TexManager.requestTextureLoad("BasicTower");
             TexManager.requestTextureLoad("BasicCreep");
             TexManager.requestTextureLoad("light_sand_template");
-            TexManager.requestTextureLoad("Bullet");
+            TexManager.requestTextureLoad("BulletSprites");
             TexManager.BeginLoadTextures();
-            TexManager.requestTextureLoad("ExplosionThreeRed");
             //  Loader.WriteStandardizedTextures();
             while (TexManager.LoadingTextures == true)
                 ;
+            TexManager.SplitLaserTexture();
             // While we wait for everything to load - until I implement a proper loading screen
             // Just spin
 
             DebugCreep = new Creep(new Animation(TexManager["BasicCreep"], 1), new Vector2(100, 100), new Vector2(20f, 20f), 20);
-            DebugCreep.RotationZero = new Vector2(0, 1);
+            DebugCreep.RotationZero = new Vector2(0, -1);
             DebugCreep2 = new Creep(DebugCreep.Animations[0], new Vector2(200, 100), new Vector2(50f, 50f), 20);
-            DebugCreep2.RotationZero = new Vector2(0, 1);
-            DebugTower = new Tower(new Animation(TexManager["BasicTower"], 1), new Vector2(200, 400), 50, 50f);
+            DebugCreep2.RotationZero = new Vector2(0, -1);
+            DebugTower = new Tower(new Animation(TexManager["BasicTower"], 1), new Vector2(200, 400), 50, 1f);
+            DebugTower.AttackType = Projectile.DebugProjectile;
             MainEntityManager.AddCreep(DebugCreep);
             MainEntityManager.AddTower(DebugTower);
             MainEntityManager.AddCreep(DebugCreep2);
             PlayerInputHandler.MouseMovement += MainEntityManager.GetMousePos;
-            CurveTest();
             
         }
 
@@ -149,15 +149,14 @@ namespace ControlledSpheres {
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime) {
-            GameObject g = new GameObject(TexManager["Bullet"][0], new Vector2(300, 100));
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
             spriteBatch.Draw(Background, new Vector2(0, 0), Color.White);
             DebugTower.Draw(spriteBatch);
-            g.Draw(spriteBatch);
             //DebugTower.Draw(spriteBatch);
             DebugCreep.Draw(spriteBatch);
             DebugCreep2.Draw(spriteBatch);
+            MainEntityManager.Draw(spriteBatch);
             foreach (AnimatedGameObject a in SpawnedAnimations) {
                 a.Draw(spriteBatch);
             }   
@@ -212,7 +211,7 @@ namespace ControlledSpheres {
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
             //Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
             if (e.Button == AllButtons.MouseButtonLeft)
-                SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector2(), "ExplosionThreeRed"));
+                MainEntityManager.AddProjectile(DebugTower.Fire(e.MousePos.ToVector2()));
             if (e.Button == AllButtons.MouseButtonRight)
                 SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector2(), "ExplosionThreeBlue"));
             //Sphere.Center = e.MousePos.ToVector3();
@@ -265,17 +264,6 @@ namespace ControlledSpheres {
             AnimationArray[0] = CreepAnimation;
             Creep C = new Creep(AnimationArray, Position, Velocity, 30);
             return C;
-        }
-
-        public void CurveTest() {
-            Curve curve = new Curve();
-            CurveKey Key = new CurveKey(0f, 0f);
-            CurveKey KeyTwo = new CurveKey(250f, 300f);
-            CurveKey KeyThree = new CurveKey(500f, 0f);
-            CurveKey KeyBad = new CurveKey(0f, 300f);
-            curve.Keys.Add(Key);
-            curve.Keys.Add(KeyTwo);
-            curve.Keys.Add(KeyThree);
         }
     }
 }
