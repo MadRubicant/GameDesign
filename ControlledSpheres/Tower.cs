@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using ControlledSpheres.Graphics;
 namespace ControlledSpheres {
-    public delegate Projectile TowerAttack(GameObject Target);
+    public delegate Projectile TowerAttack(GameObject Target, Tower tower);
 
     public class Tower : AnimatedGameObject {
         public float Range { get; set; }
@@ -44,10 +44,14 @@ namespace ControlledSpheres {
             else if (CanFire == true) {
                 TimeSinceLastShot = 0f;
                 CanFire = false;
-                return AttackType(Target);
+                return AttackType(Target, this);
             }
             else return null;
 
+        }
+
+        public Projectile Fire(Vector2 GroundTarget) {
+            return this.Fire(new GameObject(TextureManager.MainManager.BlankTexture[0], GroundTarget));
         }
         
     }
