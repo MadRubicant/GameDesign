@@ -13,18 +13,43 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Utilities;
 
-namespace ControlledSpheres.IO {
+using ExtensionMethods;
+
+namespace ControlledSpheres.Graphics {
     class TextureManager {
         ContentManager Content;
         GraphicsDevice Graphics;
         private ConcurrentDictionary<string, Texture2D[]> TextureDict;
         private static ConcurrentBag<string> BadFilenames;
         Texture2D[] MagentaBlackErrorTexture;
+        Texture2D[] _blankTexture;
+        public Texture2D[] BlankTexture {
+            get {
+                if (_blankTexture != null)
+                    return _blankTexture;
+                else {
+                    _blankTexture = getBlankTexture();
+                    return _blankTexture;
+                }
+            }
+            private set {
+                _blankTexture = value;
+            }
+        }
         DirectoryInfo ContentDirInfo;
         ConcurrentQueue<string> RequestedTextures;
         Thread TextureLoadingThread;
         public volatile bool LoadingTextures;
 
+        /// <summary>
+        /// MainManager is for global access to textures for the current level, etc
+        /// </summary>
+        public static TextureManager MainManager;
+        /// <summary>
+        /// MiscManager is for global access to textures that need to stick around between levels
+        /// It's for menus, loading screens, and the like
+        /// </summary>
+        public static TextureManager MiscManager;
         public TextureManager(ContentManager content, GraphicsDevice graphics) {
             Content = content;
             Graphics = graphics;
@@ -33,6 +58,7 @@ namespace ControlledSpheres.IO {
             RequestedTextures = new ConcurrentQueue<string>();
             if (BadFilenames == null)
                 BadFilenames = new ConcurrentBag<string>();
+            TextureManager.MainManager = this;
         }
 
         /// <summary>
@@ -86,6 +112,14 @@ namespace ControlledSpheres.IO {
             return MagentaBlackErrorTexture;
         }
 
+        private Texture2D[] getBlankTexture() {
+            if (_blankTexture == null) {
+                Texture2D tex = new Texture2D(Graphics, 1, 1);
+                tex.SetData<Color>(new Color[] { Color.Transparent });
+                return new Texture2D[] { tex };
+            }
+            else return _blankTexture;
+        }
         public void requestTextureLoad(string TextureName) {
             if (!TextureDict.ContainsKey(TextureName))
                 RequestedTextures.Enqueue(TextureName);
@@ -164,5 +198,39 @@ namespace ControlledSpheres.IO {
             }
         }
 
+        public void SplitLaserTexture() {
+            Texture2D LaserSheet = TextureDict["BulletSprites"][0];
+            Color[] LaserColorData = new Color[LaserSheet.Width * LaserSheet.Height];
+            LaserSheet.GetData<Color>(LaserColorData);
+            for (int i = 0; i < LaserColorData.Length; i++) {
+                if (LaserColorData[i] == Color.Black)
+                    LaserColorData[i] = Color.Transparent;
+            }
+            LaserSheet.SetData<Color>(LaserColorData);
+            Texture2D[] LaserYellow = new Texture2D[4];
+            LaserYellow[0] = LaserSheet.SubSprite(new Rectangle(11, 187, 8, 8));
+            LaserYellow[1] = LaserSheet.SubSprite(new Rectangle(23, 187, 13, 8));
+            LaserYellow[2] = LaserSheet.SubSprite(new Rectangle(40, 187, 19, 8));
+            LaserYellow[3] = LaserSheet.SubSprite(new Rectangle(63, 187, 30, 8));
+            TextureDict["LaserYellow"] = LaserYellow;
+            Texture2D[] LaserGreen = new Texture2D[4];
+            LaserGreen[0] = LaserSheet.SubSprite(new Rectangle(11, 205, 8, 8));
+            LaserGreen[1] = LaserSheet.SubSprite(new Rectangle(23, 205, 13, 8));
+            LaserGreen[2] = LaserSheet.SubSprite(new Rectangle(40, 205, 19, 8));
+            LaserGreen[3] = LaserSheet.SubSprite(new Rectangle(63, 205, 30, 8));
+            TextureDict["LaserGreen"] = LaserGreen;
+            Texture2D[] LaserBlue = new Texture2D[4];
+            LaserBlue[0] = LaserSheet.SubSprite(new Rectangle(11, 223, 8, 8));
+            LaserBlue[1] = LaserSheet.SubSprite(new Rectangle(23, 223, 13, 8));
+            LaserBlue[2] = LaserSheet.SubSprite(new Rectangle(40, 223, 19, 8));
+            LaserBlue[3] = LaserSheet.SubSprite(new Rectangle(63, 223, 30, 8));
+            TextureDict["LaserBlue"] = LaserBlue;
+            Texture2D[] LaserPink = new Texture2D[4];
+            LaserPink[0] = LaserSheet.SubSprite(new Rectangle(11, 241, 8, 8));
+            LaserPink[1] = LaserSheet.SubSprite(new Rectangle(23, 241, 13, 8));
+            LaserPink[2] = LaserSheet.SubSprite(new Rectangle(40, 241, 19, 8));
+            LaserPink[3] = LaserSheet.SubSprite(new Rectangle(63, 241, 30, 8));
+            TextureDict["LaserPink"] = LaserPink;
+        }
     }
 }
