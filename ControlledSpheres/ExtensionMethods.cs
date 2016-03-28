@@ -71,5 +71,13 @@ namespace ExtensionMethods {
                 return true;
             else return false;
         }
+
+        public static Texture2D SubSprite(this Texture2D texture, Rectangle Bounds) {
+            Color[] SubspriteData = new Color[Bounds.Width * Bounds.Height];
+            texture.GetData<Color>(0, Bounds, SubspriteData, 0, Bounds.Width * Bounds.Height);
+            Texture2D ret = new Texture2D(texture.GraphicsDevice, Bounds.Width, Bounds.Height);
+            ret.SetData<Color>(SubspriteData);
+            return ret;
+        }
     }
 }
