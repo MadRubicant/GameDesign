@@ -10,21 +10,22 @@ namespace ControlledSpheres.Graphics {
     public class Animation {
         // AnimationSteps[0] should be the inactive state, i.e. standing sprite for an rpg
         public Texture2D[] AnimationSteps;
-        public int AnimationTickLength;
-        public int AnimationTotalLength;
-        public int AnimationTimeElapsed;
+        public float AnimationTickLength;
+        public float AnimationTotalLength;
+        public float AnimationTimeElapsed;
         public int TextureIndex;
 
         public bool Active { get; private set; }
         public bool Looping { get; set; }
 
+        #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="Animation"/> class.
         /// </summary>
         /// <param name="animationStrip">The animation strip.</param>
         /// <param name="framelength">The framelength.</param>
         /// <param name="totalLength">The total length.</param>
-        public Animation(Texture2D[] animationStrip, int framelength, int totalLength) {
+        public Animation(Texture2D[] animationStrip, float framelength, float totalLength) {
             AnimationSteps = animationStrip;
             AnimationTickLength = framelength;
             AnimationTotalLength = totalLength;
@@ -38,13 +39,14 @@ namespace ControlledSpheres.Graphics {
         /// </summary>
         /// <param name="animationStrip">The animation strip.</param>
         /// <param name="framelength">The framelength.</param>
-        public Animation(Texture2D[] animationStrip, int framelength) {
+        public Animation(Texture2D[] animationStrip, float framelength) {
             AnimationSteps = animationStrip;
             AnimationTickLength = framelength;
             AnimationTotalLength = AnimationSteps.Length * AnimationTickLength;
             AnimationTimeElapsed = 0;
             TextureIndex = 0;
         }
+        #endregion
 
         /// <summary>
         /// Begins the animation
@@ -82,7 +84,7 @@ namespace ControlledSpheres.Graphics {
         public void Update(GameTime gameTime) {
             // If the animation is active, the frame counter should increment
             if (Active == true) {
-                AnimationTimeElapsed += (int)gameTime.ElapsedGameTime.TotalMilliseconds;
+                AnimationTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 if (AnimationTimeElapsed >= (TextureIndex + 1) * AnimationTickLength) {
                     TextureIndex++;
                     if (TextureIndex == AnimationSteps.Length) {
