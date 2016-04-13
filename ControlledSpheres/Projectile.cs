@@ -12,6 +12,8 @@ using ControlledSpheres.Graphics;
 namespace ControlledSpheres {
     public class Projectile : AnimatedGameObject {
         public GameObject Target { get; set; }
+        public bool CollisionActive { get; set; }
+        public int Damage { get; set; } 
         public Projectile(Animation animation, Vector2 Position, Vector2 Velocity, GameObject Target) :
             base(animation, Position, Velocity) {
                 this.Target = Target;
@@ -27,8 +29,8 @@ namespace ControlledSpheres {
 
 
         public static Projectile DebugProjectile(GameObject Target, Tower SourceTower) {
-            Projectile Prof = new Projectile(new Animation(TextureManager.MainManager["LaserYellow"], 30), SourceTower.Center, new Vector2(100, 0), Target);
-            return Prof;
+            Projectile Proj = new Projectile(new Animation(TextureManager.MainManager["LaserYellow"], 1000), SourceTower.Center, new Vector2(100, 0), Target);
+            return Proj;
         }
     }
 
