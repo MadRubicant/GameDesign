@@ -62,7 +62,7 @@ namespace ControlledSpheres {
                 p.Update(gameTime);
             }
 
-            //CollisionDetection();
+            CollisionDetection();
             foreach (Tower T in TowersToRemove)
                 ActiveTowers.Remove(T);
             foreach (Creep C in CreepsToRemove)

@@ -1,13 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Utilities;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using ExtensionMethods;
 
 using ControlledSpheres.IO;
 using ControlledSpheres.Graphics;
@@ -46,6 +43,7 @@ namespace ControlledSpheres {
             this.IsFixedTimeStep = false;
             Content.RootDirectory = "Content";
             levelSetup = new LevelSetup("Content/DebugLevel.txt");
+            
         }
 
         /// <summary>
@@ -104,7 +102,7 @@ namespace ControlledSpheres {
             DebugCreep.RotationZero = new Vector2(0, -1);
             DebugCreep2 = new Creep(DebugCreep.Animations[0], new Vector2(200, 100), new Vector2(50f, 50f), 20);
             DebugCreep2.RotationZero = new Vector2(0, -1);
-            DebugTower = new Tower(new Animation(TexManager["BasicTower"], 1), new Vector2(200, 400), 50, 1f);
+            DebugTower = new Tower(new Animation(TexManager["BasicTower"], 1), new Vector2(200, 400), 50, .1f);
             DebugTower.AttackType = Projectile.DebugProjectile;
             MainEntityManager.AddCreep(DebugCreep);
             MainEntityManager.AddTower(DebugTower);
@@ -211,7 +209,7 @@ namespace ControlledSpheres {
         public void HandleButtonHeld(object sender, InputStateEventArgs e) {
             //Console.WriteLine("Button {0} held at posoition {1}", Enum.GetName(typeof(AllButtons), e.Button), e.MousePos.ToString());
             if (e.Button == AllButtons.MouseButtonLeft)
-                MainEntityManager.AddProjectile(DebugTower.Fire(e.MousePos.ToVector2()));
+                MainEntityManager.AddProjectile(DebugTower.Fire(new GameObject(TexManager.BlankTexture[0], e.MousePos.ToVector2())));
             if (e.Button == AllButtons.MouseButtonRight)
                 SpawnedAnimations.Add(NewExplosion(e.MousePos.ToVector2(), "ExplosionThreeBlue"));
             //Sphere.Center = e.MousePos.ToVector3();

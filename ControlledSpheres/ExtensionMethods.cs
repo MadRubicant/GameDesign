@@ -47,8 +47,14 @@ namespace ExtensionMethods {
         /// <param name="Other"></param>
         /// <returns>The rotated vector</returns>
         public static Vector2 Rotate(this Vector2 vector, Vector2 Other) {
+            if (Other == Vector2.Zero)
+                return vector;
             Other.Normalize();
             Other *= vector.Length();
+#if DEBUG
+            if (float.IsNaN(Other.X) || float.IsNaN(Other.Y))
+                throw new ArithmeticException();
+#endif
             return Other;
         }
 
@@ -78,6 +84,12 @@ namespace ExtensionMethods {
             Texture2D ret = new Texture2D(texture.GraphicsDevice, Bounds.Width, Bounds.Height);
             ret.SetData<Color>(SubspriteData);
             return ret;
+        }
+
+        public static int test() {
+            
+
+            return 0;
         }
     }
 }

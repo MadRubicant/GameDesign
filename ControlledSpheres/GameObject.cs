@@ -23,15 +23,31 @@ namespace ControlledSpheres {
             set {
                 Vector2 diff = _center - TexturePosition;
                 _center = value;
+#if DEBUG
+                if (float.IsNaN(_center.X))
+                    throw new ArithmeticException("NaN generated");
+#endif
                 TexturePosition = (_center - diff);
                 Hitbox.Offset(diff);
             }
         }
-
+        public bool CollisionActive { get; set; }
         /// <summary>
         /// Velocity must be in Units per second
         /// </summary>
-        public Vector2 Velocity { get; set; }
+        public Vector2 Velocity {
+            get {
+                return _velocity;
+            }
+            set {
+#if DEBUG
+                if (float.IsNaN(value.X) || float.IsNaN(value.Y))
+                    throw new ArithmeticException(string.Format("NaN generated when updating {0}.Velocity", this.GetType()));
+#endif
+                _velocity = value;
+            }
+        }
+        private Vector2 _velocity;
         public Rectangle Hitbox {get; private set;}
         public Vector2 RotationZero { get; set; }
         public Vector2 Rotation { get; set; }
@@ -88,6 +104,10 @@ namespace ControlledSpheres {
         /// <param name="gameTime">The game time.</param>
         public virtual void Update(GameTime gameTime) {
             Center += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+#if DEBUG
+            if (float.IsNaN(Velocity.X) || float.IsNaN(Velocity.Y))
+                throw new ArithmeticException("NaN generated in GameObject.Update()");
+#endif
             switch (RotMode) {
                 case RotationMode.Velocity:
                     Rotation = Rotation.Rotate(Velocity);
