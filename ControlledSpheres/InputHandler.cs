@@ -43,6 +43,7 @@ namespace ControlledSpheres {
             ret.Button = this.Button;
             ret.Modifier = this.Modifier;
             ret.MousePos = this.MousePos;
+            ret.MouseDelta = this.MouseDelta;
             return ret;
         }
     }
@@ -105,6 +106,16 @@ namespace ControlledSpheres {
             }
             args.Modifier = ModKey;
             args.MousePos = MouseCurrent.Position;
+
+            #region Mouse Movement
+            Point mouseDiff = (MouseCurrent.Position - MousePrevious.Position);
+            if (mouseDiff != new Point()) {
+                args.MouseDelta = mouseDiff;
+                if (MouseMovement != null)
+                    MouseMovement(this, args);
+            }
+
+            #endregion
 
             #region Keyboard inputs
             foreach (Keys K in CurrentKeyState) {
@@ -176,15 +187,7 @@ namespace ControlledSpheres {
             // I feel dirty
             #endregion
 
-            #region Mouse Movement
-            Point mouseDiff = (MouseCurrent.Position - MousePrevious.Position);
-            if (mouseDiff != new Point()) {
-                args.MouseDelta = mouseDiff;
-                if (MouseMovement != null)
-                    MouseMovement(this, args);
-            }
-
-            #endregion
+            
             
         }
 
